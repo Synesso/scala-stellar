@@ -17,8 +17,11 @@ class JsReader[T](f: JObject => T)(implicit m: Manifest[T]) extends CustomSerial
 object JsReader {
   implicit val formats: Formats = DefaultFormats
 
-  def doubleStringToLong(key: String, o: JObject): Long =
-    (BigDecimal((o \ key).extract[String]) * BigDecimal(10).pow(7)).toLongExact
+  def doubleStringToLong(key: String, o: JObject): Long = optDoubleStringToLong(key, o).get
+
+  def optDoubleStringToLong(key: String, o: JObject): Option[Long] =
+    (o \ key).extractOpt[String].map(value =>
+      (BigDecimal(value) * BigDecimal(10).pow(7)).toLongExact)
 }
 
 

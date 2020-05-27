@@ -15,7 +15,7 @@ import stellar.protocol.Amount
  * @param authorizedToMaintainLiabilities If true, the account can maintain offers to buy and sell this asset, but not send or receive.
  */
 case class Balance(amount: Amount,
-                   limit: Long,
+                   limit: Option[Long],
                    buyingLiabilities: Long,
                    sellingLiabilities: Long,
                    authorized: Boolean,
@@ -27,7 +27,7 @@ object BalanceReader extends JsReader[Balance]({ o: JObject =>
 
   Balance(
     amount = o.extract[Amount],
-    limit = doubleStringToLong("limit", o),
+    limit = optDoubleStringToLong("limit", o),
     buyingLiabilities = doubleStringToLong("buying_liabilities", o),
     sellingLiabilities = doubleStringToLong("selling_liabilities", o),
     authorized = (o \ "is_authorized").extractOpt[Boolean].getOrElse(false),

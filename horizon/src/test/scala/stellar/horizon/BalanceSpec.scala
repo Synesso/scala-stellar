@@ -24,7 +24,7 @@ object BalanceSpec {
 
   val genBalance: Gen[Balance] = for {
     amount <- genAmount
-    limit <- Gen.posNum[Long]
+    limit <- Gen.option(Gen.posNum[Long])
     buyingLiabilities <- Gen.posNum[Long]
     sellingLiabilities <- Gen.posNum[Long]
     authorized <- Gen.oneOf(true, false)
@@ -38,7 +38,7 @@ object BalanceSpec {
   def asJsonDoc(balance: Balance): String =
     s"""
        |{
-       |  "limit": "${toDecimalString(balance.limit)}",
+       |  ${balance.limit.map(limit => s""""limit": "${toDecimalString(limit)}",""").getOrElse("")}
        |  "buying_liabilities": "${toDecimalString(balance.buyingLiabilities)}",
        |  "selling_liabilities": "${toDecimalString(balance.sellingLiabilities)}",
        |  ${maybeOmitWhenFalse("is_authorized", balance.authorized)}
