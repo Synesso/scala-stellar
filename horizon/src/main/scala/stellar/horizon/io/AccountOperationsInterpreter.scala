@@ -1,36 +1,8 @@
 package stellar.horizon.io
 
-import java.io.IOException
-
-import com.sun.deploy.net.HttpRequest
-import okhttp3._
-import org.json4s.native.JsonMethods
-import stellar.horizon.AccountDetail
-import stellar.horizon.io.MockHttpExchange.Invoke
-import stellar.protocol.AccountId
-
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.Try
-
 object AccountOperationsInterpreter{
+/*
 
-  def httpExchange(client: OkHttpClient, request: Request): Future[Response] = {
-    val call = client.newCall(request)
-    val promise = Promise[Response]()
-    val callback = new Callback {
-      // $COVERAGE-OFF$
-      // TODO (jem) - Cannot cover with tests whilst the url is hard-coded.
-      override def onFailure(call: Call, e: IOException): Unit = {
-         promise.failure(e)
-      }
-      // $COVERAGE-ON$
-      override def onResponse(call: Call, response: Response): Unit = {
-        promise.success(response)
-      }
-    }
-    call.enqueue(callback)
-    promise.future
-  }
 }
 
 trait HttpExchange[F[_]] {
@@ -73,4 +45,5 @@ class AccountOperationsInterpreter(
       }
     } yield accountDetails
   }
+*/
 }

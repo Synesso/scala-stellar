@@ -2,7 +2,7 @@ ThisBuild / scalaVersion := "2.13.2"
 
 homepage in ThisBuild := Some(url("https://github.com/synesso/scala-stellar-sdk"))
 
-lazy val root = project
+lazy val `scala-sdk` = project
   .in(file("."))
   .aggregate(protocol, horizon)
 
@@ -21,6 +21,10 @@ lazy val protocol = project
 lazy val horizon = project
   .in(file("horizon"))
   .dependsOn(protocol % "compile->compile;test->test")
+  .enablePlugins(BuildInfoPlugin).settings(
+    //    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
+    buildInfoPackage := "stellar"
+  )
   .settings(
     libraryDependencies ++= List(
       "com.squareup.okhttp3" % "okhttp" % "4.7.2",

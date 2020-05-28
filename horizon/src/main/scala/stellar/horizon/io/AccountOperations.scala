@@ -7,6 +7,7 @@ import scala.concurrent.Future
 import scala.util.Try
 
 object AccountOperations {
+/*
   def blocking(): AccountOperations[Try] = ???
   def async(): AccountOperations[Future] = ???
 }
@@ -33,4 +34,5 @@ object Program {
       _ <- passwordResetOperation.reset(accountDetail, validatedPasswordInput)
     }
   }
+*/
 }
