@@ -18,14 +18,14 @@ trait HttpExchange[F[_]] {
 /**
  * Execute an HTTP exchange, returning a Try.
  */
-class HttpExchangeSync extends HttpExchange[Try] {
+object HttpExchangeSync extends HttpExchange[Try] {
   override def invoke(request: Request): Try[Response] = Try(HttpExchange.invokeSync(request))
 }
 
 /**
  * Execute an HTTP exchange, returning a Future.
  */
-class HttpExchangeAsync extends HttpExchange[Future] {
+object HttpExchangeAsync extends HttpExchange[Future] {
   override def invoke(request: Request): Future[Response] = HttpExchange.invokeAsync(request)
 }
 
@@ -49,6 +49,7 @@ object HttpExchange {
     promise.future
   }
 
+  // TODO (jem) - this should be in the Horizon class that makes the requests.
   private def addSdkHeaders(request: Request): Request = {
     request.newBuilder()
       .addHeader("X-Client-Name", BuildInfo.name)
