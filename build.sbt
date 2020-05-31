@@ -15,6 +15,7 @@ lazy val protocol = project
       "net.i2p.crypto" % "eddsa" % "0.3.0",
       "com.squareup.okio" % "okio" % "2.6.0",
     ) ::: logging ::: specs2,
+    scalacOptions += "-deprecation",
     coverage(99)
   )
 
@@ -22,7 +23,6 @@ lazy val horizon = project
   .in(file("horizon"))
   .dependsOn(protocol % "compile->compile;test->test")
   .enablePlugins(BuildInfoPlugin).settings(
-    //    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
     buildInfoPackage := "stellar"
   )
   .settings(
@@ -30,6 +30,7 @@ lazy val horizon = project
       "com.squareup.okhttp3" % "okhttp" % "4.7.2",
       "org.json4s" %% "json4s-native" % "3.6.8",
     ),
+    scalacOptions += "-deprecation",
     coverage(99)
   )
 

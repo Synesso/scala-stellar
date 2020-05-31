@@ -3,7 +3,6 @@ package stellar.horizon.io
 import java.io.IOException
 
 import okhttp3._
-import stellar.BuildInfo
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -19,40 +18,28 @@ trait HttpExchange[F[_]] {
  * Execute an HTTP exchange, returning a Try.
  */
 object HttpExchangeSync extends HttpExchange[Try] {
-  override def invoke(request: Request): Try[Response] = Try(HttpExchange.invokeSync(request))
+  private val client: OkHttpClient = new OkHttpClient()
+  override def invoke(request: Request): Try[Response] = Try(client.newCall(request).execute())
 }
 
 /**
  * Execute an HTTP exchange, returning a Future.
  */
 object HttpExchangeAsync extends HttpExchange[Future] {
-  override def invoke(request: Request): Future[Response] = HttpExchange.invokeAsync(request)
-}
-
-object HttpExchange {
   private val client: OkHttpClient = new OkHttpClient()
-
-  def invokeSync(request: Request): Response = client.newCall(addSdkHeaders(request)).execute()
-
-  def invokeAsync(request: Request): Future[Response] = {
-    val call = client.newCall(addSdkHeaders(request))
+  override def invoke(request: Request): Future[Response] = {
+    val call = client.newCall(request)
     val promise = Promise[Response]()
     val callback = new Callback {
       override def onFailure(call: Call, e: IOException): Unit = {
         promise.failure(e)
       }
+
       override def onResponse(call: Call, response: Response): Unit = {
         promise.success(response)
       }
     }
     call.enqueue(callback)
     promise.future
-  }
-
-  private def addSdkHeaders(request: Request): Request = {
-    request.newBuilder()
-      .addHeader("X-Client-Name", BuildInfo.name)
-      .addHeader("X-Client-Version", BuildInfo.version)
-      .build()
   }
 }

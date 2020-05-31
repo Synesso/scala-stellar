@@ -12,10 +12,12 @@ import stellar.protocol.Amount
  * @param authorized                      If true, the account can send, receive, buy and sell this asset.
  * @param authorizedToMaintainLiabilities If true, the account can maintain offers to buy and sell this asset, but not send or receive.
  */
-case class Balance(amount: Amount,
-                   limit: Option[Long],
-                   buyingLiabilities: Long,
-                   sellingLiabilities: Long,
-                   authorized: Boolean,
-                   authorizedToMaintainLiabilities: Boolean)
+case class Balance(
+  amount: Amount,
+  limit: Option[Long],
+  buyingLiabilities: Long,
+  sellingLiabilities: Long,
+  authorized: Boolean,
+  authorizedToMaintainLiabilities: Boolean
+)
 

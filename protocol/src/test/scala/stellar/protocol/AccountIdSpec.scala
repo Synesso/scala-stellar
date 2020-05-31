@@ -22,8 +22,7 @@ class AccountIdSpec extends Specification with ScalaCheck with XdrSerdeMatchers 
 
 object AccountIds {
   private val genKeyPair = Gen.const(() => new KeyPairGenerator().generateKeyPair()).map(_.apply())
-  private val genPublicKey = genKeyPair.map(_.getPublic.asInstanceOf[EdDSAPublicKey])
 
-  val genAccountId: Gen[AccountId] = Gen.const(AccountId.random _).map(_.apply())
+  val genAccountId: Gen[AccountId] = Gen.const(() => AccountId.random).map(_.apply())
   implicit val arbAccountId: Arbitrary[AccountId] = Arbitrary(genAccountId)
 }
