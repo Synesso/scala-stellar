@@ -1,4 +1,4 @@
-package stellar.horizon
+package stellar.horizon.json
 
 import java.time.format.DateTimeFormatter.ISO_ZONED_DATE_TIME
 import java.time.{Instant, ZoneId}
@@ -10,8 +10,7 @@ import org.json4s.{Formats, NoTypeHints}
 import org.scalacheck.{Arbitrary, Gen}
 import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
-import stellar.horizon.json.SignerReaderSpec
-import stellar.protocol.xdr.ByteArrays
+import stellar.horizon.{AccountDetail, AuthFlags, Thresholds}
 
 class AccountDetailSpec extends Specification with ScalaCheck {
   import AccountDetails._
@@ -24,7 +23,7 @@ class AccountDetailSpec extends Specification with ScalaCheck {
 }
 
 object AccountDetails {
-  import stellar.horizon.BalanceSpec._
+  import stellar.horizon.json.BalanceReaderSpec._
   import stellar.protocol.AccountIds._
   import stellar.protocol.Signers._
 
@@ -71,7 +70,7 @@ object AccountDetails {
       |    "auth_immutable": ${detail.authFlags.immutable}
       |  },
       |  "balances": [
-      |    ${detail.balances.map(BalanceSpec.asJsonDoc).mkString(",")}
+      |    ${detail.balances.map(BalanceReaderSpec.asJsonDoc).mkString(",")}
       |  ],
       |  "signers": [
       |    ${detail.signers.map(SignerReaderSpec.asJsonDoc).mkString(",")}

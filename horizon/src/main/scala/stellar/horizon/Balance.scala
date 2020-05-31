@@ -1,7 +1,5 @@
 package stellar.horizon
 
-import org.json4s.{DefaultFormats, Formats, JObject}
-import stellar.horizon.json.{AmountReader, JsReader}
 import stellar.protocol.Amount
 
 /**
@@ -21,16 +19,3 @@ case class Balance(amount: Amount,
                    authorized: Boolean,
                    authorizedToMaintainLiabilities: Boolean)
 
-object BalanceReader extends JsReader[Balance]({ o: JObject =>
-  import JsReader._
-  implicit val formats: Formats = DefaultFormats + new AmountReader("balance")
-
-  Balance(
-    amount = o.extract[Amount],
-    limit = optDoubleStringToLong("limit", o),
-    buyingLiabilities = doubleStringToLong("buying_liabilities", o),
-    sellingLiabilities = doubleStringToLong("selling_liabilities", o),
-    authorized = (o \ "is_authorized").extractOpt[Boolean].getOrElse(false),
-    authorizedToMaintainLiabilities = (o \ "is_authorized_to_maintain_liabilities").extractOpt[Boolean].getOrElse(false)
-  )
-})

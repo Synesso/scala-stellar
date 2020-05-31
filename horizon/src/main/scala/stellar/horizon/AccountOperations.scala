@@ -1,9 +1,10 @@
 package stellar.horizon
 
 import okhttp3.{HttpUrl, Request}
-import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.JsonMethods.parse
+import org.json4s.{DefaultFormats, Formats}
 import stellar.horizon.io.{HttpExchange, HttpExchangeAsync, HttpExchangeSync}
+import stellar.horizon.json.AccountDetailReader
 import stellar.protocol.AccountId
 
 import scala.concurrent.{ExecutionContext, Future}

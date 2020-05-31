@@ -1,8 +1,5 @@
 package stellar.horizon
 
-import org.json4s.{DefaultFormats, Formats, JObject}
-import stellar.horizon.json.JsReader
-
 /**
  * The thresholds for operations on an account.
  *
@@ -12,12 +9,3 @@ import stellar.horizon.json.JsReader
  * @param high The weight required for a valid transaction including the Account Merge and Set Options operations.
  */
 case class Thresholds(low: Int, med: Int, high: Int)
-
-object ThresholdsReader extends JsReader[Thresholds]({ o: JObject =>
-  implicit val formats: Formats = DefaultFormats
-
-  Thresholds(
-    (o \ "low_threshold").extract[Int],
-    (o \ "med_threshold").extract[Int],
-    (o \ "high_threshold").extract[Int])
-})

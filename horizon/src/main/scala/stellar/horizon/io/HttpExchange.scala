@@ -49,7 +49,6 @@ object HttpExchange {
     promise.future
   }
 
-  // TODO (jem) - this should be in the Horizon class that makes the requests.
   private def addSdkHeaders(request: Request): Request = {
     request.newBuilder()
       .addHeader("X-Client-Name", BuildInfo.name)
