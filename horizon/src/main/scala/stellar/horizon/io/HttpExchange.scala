@@ -25,23 +25,25 @@ trait HttpExchange[F[_]] {
   def invoke(request: Request): F[Response]
 }
 
-/**
- * Execute an HTTP exchange, returning a Try.
- */
-class HttpExchangeSyncInterpreter(client: OkHttpClient) extends HttpExchange[Try] {
-  override def invoke(request: Request): Try[Response] = Try {
-    val outgoing = HttpExchange.preprocessRequest(request)
-    client.newCall(outgoing).execute()
+object HttpExchangeSyncInterpreter {
+  def exchange(client: OkHttpClient, request: Request): Try[Response] = Try {
+    client.newCall(request).execute()
   }
 }
 
 /**
- * Execute an HTTP exchange, returning a Future.
+ * Execute an HTTP exchange, returning a Try.
  */
-class HttpExchangeAsyncInterpreter(client: OkHttpClient)(implicit ec: ExecutionContext) extends HttpExchange[Future] {
-  override def invoke(request: Request): Future[Response] = {
+class HttpExchangeSyncInterpreter(exchange: Request => Try[Response]) extends HttpExchange[Try] {
+  override def invoke(request: Request): Try[Response] = {
     val outgoing = HttpExchange.preprocessRequest(request)
-    val call = client.newCall(outgoing)
+    exchange(outgoing)
+  }
+}
+
+object HttpExchangeAsyncInterpreter {
+  def exchange(client: OkHttpClient, request: Request): Future[Response] = {
+    val call = client.newCall(request)
     val promise = Promise[Response]()
     val callback = new Callback {
       override def onFailure(call: Call, e: IOException): Unit = {
@@ -54,5 +56,16 @@ class HttpExchangeAsyncInterpreter(client: OkHttpClient)(implicit ec: ExecutionC
     }
     call.enqueue(callback)
     promise.future
+  }
+
+}
+
+/**
+ * Execute an HTTP exchange, returning a Future.
+ */
+class HttpExchangeAsyncInterpreter(exchange: Request => Future[Response])(implicit ec: ExecutionContext) extends HttpExchange[Future] {
+  override def invoke(request: Request): Future[Response] = {
+    val outgoing = HttpExchange.preprocessRequest(request)
+    exchange(outgoing)
   }
 }

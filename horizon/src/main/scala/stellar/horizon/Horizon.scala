@@ -17,7 +17,11 @@ object Horizon {
   def sync(
     baseUrl: HttpUrl = Endpoints.Main,
     httpClient: OkHttpClient = new OkHttpClient(),
-    createHttpExchange: OkHttpClient => HttpExchange[Try] = new HttpExchangeSyncInterpreter(_)
+    createHttpExchange: OkHttpClient => HttpExchange[Try] = { httpClient =>
+      new HttpExchangeSyncInterpreter(
+        exchange = HttpExchangeSyncInterpreter.exchange(httpClient, _)
+      )
+    }
   ): Horizon[Try] = {
     val httpExchange = createHttpExchange(httpClient)
 
@@ -30,7 +34,9 @@ object Horizon {
     baseUrl: HttpUrl = Endpoints.Main,
     httpClient: OkHttpClient = new OkHttpClient(),
     createHttpExchange: (OkHttpClient, ExecutionContext) => HttpExchange[Future] = { (httpClient, ec) =>
-      new HttpExchangeAsyncInterpreter(httpClient)(ec)
+      new HttpExchangeAsyncInterpreter(
+        exchange = HttpExchangeAsyncInterpreter.exchange(httpClient, _)
+      )(ec)
     }
   )(implicit ec: ExecutionContext): Horizon[Future] = {
     val httpExchange = createHttpExchange(httpClient, ec)
