@@ -1,6 +1,6 @@
 package stellar.horizon
 
-import okhttp3.{HttpUrl, Request}
+import okhttp3.{HttpUrl, Request, Response}
 import org.json4s.native.JsonMethods.parse
 import org.json4s.{DefaultFormats, Formats}
 import stellar.horizon.io.HttpOperations
@@ -11,10 +11,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object AccountOperations {
-  object Implicits {
-    implicit val formats: Formats = DefaultFormats + AccountDetailReader
-  }
-
   def accountDetailRequest(horizonBaseUrl: HttpUrl, accountId: AccountId): Request =
     new Request.Builder()
     .url(
@@ -24,6 +20,11 @@ object AccountOperations {
         .addPathSegment(accountId.encodeToString)
         .build())
     .build()
+
+  def responseToAccountDetails(response: Response): AccountDetail = {
+    implicit val formats: Formats = DefaultFormats + AccountDetailReader
+    parse(response.body().string()).extract[AccountDetail]
+  }
 }
 
 /**
@@ -42,13 +43,11 @@ class AccountOperationsSyncInterpreter(
   httpExchange: HttpOperations[Try]
 ) extends AccountOperations[Try] {
 
-  import AccountOperations.Implicits._
-
   override def accountDetail(accountId: AccountId): Try[AccountDetail] = {
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
     for {
       response <- httpExchange.invoke(request)
-      result <- Try(parse(response.body().string()).extract[AccountDetail])
+      result <- Try(AccountOperations.responseToAccountDetails(response))
     } yield result
   }
 
@@ -62,13 +61,11 @@ class AccountOperationsAsyncInterpreter(
   httpExchange: HttpOperations[Future]
 )(implicit ec: ExecutionContext) extends AccountOperations[Future] {
 
-  import AccountOperations.Implicits._
-
   override def accountDetail(accountId: AccountId): Future[AccountDetail] = {
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
     for {
       response <- httpExchange.invoke(request)
-      result <- Future(parse(response.body().string()).extract[AccountDetail])
+      result <- Future(AccountOperations.responseToAccountDetails(response))
     } yield result
   }
 }
