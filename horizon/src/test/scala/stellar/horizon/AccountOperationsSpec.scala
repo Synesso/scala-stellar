@@ -7,7 +7,6 @@ import org.specs2.mutable.Specification
 import stellar.horizon.io.{FakeHttpOperations, FakeHttpOperationsAsync, FakeHttpOperationsSync}
 import stellar.horizon.json.AccountDetails
 
-import scala.concurrent.Future
 import scala.util.{Success, Try}
 
 class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification with ScalaCheck {
@@ -29,16 +28,9 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
 
       horizon.accounts.accountDetail(accountDetail.id) must beEqualTo(Success(accountDetail))
 
-      mockHttpExchange.calls.length mustEqual 1
-
-      val request = mockHttpExchange.calls
-        .headOption
-        .collect {
-          case FakeHttpOperations.Invoke(r) => r
-        }
-        .get
-
-      request.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
+      mockHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
+        r.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
+      }
     }
   }
 
@@ -56,16 +48,9 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
 
       horizon.accounts.accountDetail(accountDetail.id) must beEqualTo(accountDetail).await
 
-      mockHttpExchange.calls.length mustEqual 1
-
-      val request = mockHttpExchange.calls
-        .headOption
-        .collect {
-          case FakeHttpOperations.Invoke(r) => r
-        }
-        .get
-
-      request.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
+      mockHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
+        r.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
+      }
     }
   }
 }
