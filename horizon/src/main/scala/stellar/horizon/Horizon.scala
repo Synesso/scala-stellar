@@ -8,8 +8,14 @@ import scala.util.Try
 
 
 object Horizon {
+
+  object Endpoints {
+    val Main = HttpUrl.parse("https://horizon.stellar.org/")
+    val Test = HttpUrl.parse("https://horizon-testnet.stellar.org/")
+  }
+
   def sync(
-    baseUrl: HttpUrl,
+    baseUrl: HttpUrl = Endpoints.Main,
     httpClient: OkHttpClient = new OkHttpClient(),
     createHttpExchange: OkHttpClient => HttpExchange[Try] = new HttpExchangeSyncInterpreter(_)
   ): Horizon[Try] = {
@@ -21,7 +27,7 @@ object Horizon {
   }
 
   def async(
-    baseUrl: HttpUrl,
+    baseUrl: HttpUrl = Endpoints.Main,
     httpClient: OkHttpClient = new OkHttpClient(),
     createHttpExchange: (OkHttpClient, ExecutionContext) => HttpExchange[Future] = { (httpClient, ec) =>
       new HttpExchangeAsyncInterpreter(httpClient)(ec)
