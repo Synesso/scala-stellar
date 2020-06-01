@@ -1,7 +1,6 @@
 package stellar.horizon
 
 import okhttp3.HttpUrl
-import stellar.horizon.io.{HttpExchangeAsync, HttpExchangeSync}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -16,13 +15,13 @@ object Horizons {
   private val mainNetUrl = HttpUrl.parse("https://horizon.stellar.org/")
   private val testNetUrl = HttpUrl.parse("https://horizon-testnet.stellar.org/")
 
-  object SdfTestNet {
-    object Async extends Horizon[Future](testNetUrl) with HttpExchangeAsync with AccountOperationsAsyncInterpreter
-    object Blocking extends Horizon[Try](testNetUrl) with HttpExchangeSync with AccountOperationsSyncInterpreter
-  }
-
-  object SdfMainNet {
-    object Async extends Horizon[Future](mainNetUrl) with HttpExchangeAsync with AccountOperationsAsyncInterpreter
-    object Blocking extends Horizon[Try](mainNetUrl) with HttpExchangeSync with AccountOperationsSyncInterpreter
-  }
+//  object SdfTestNet {
+//    val Async = Horizon.async(testNetUrl)
+//    val Blocking = Horizon.blocking(testNetUrl)
+//  }
+//
+//  object SdfMainNet {
+//    object Async extends Horizon[Future](mainNetUrl) with HttpExchangeAsync with AccountOperationsAsyncInterpreter
+//    object Blocking extends Horizon[Try](mainNetUrl) with HttpExchangeSync with AccountOperationsSyncInterpreter
+//  }
 }
