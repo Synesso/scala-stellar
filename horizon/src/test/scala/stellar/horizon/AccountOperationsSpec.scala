@@ -1,6 +1,6 @@
 package stellar.horizon
 
-import okhttp3.{HttpUrl, Response}
+import okhttp3.{Headers, HttpUrl, Response}
 import org.specs2.ScalaCheck
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification

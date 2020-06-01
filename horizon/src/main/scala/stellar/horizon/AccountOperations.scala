@@ -11,6 +11,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object AccountOperations {
+  object Implicits {
+    implicit val formats: Formats = DefaultFormats + AccountDetailReader
+  }
+
   def accountDetailRequest(horizonBaseUrl: HttpUrl, accountId: AccountId): Request =
     new Request.Builder()
     .url(
@@ -37,7 +41,8 @@ class AccountOperationsSyncInterpreter(
   horizonBaseUrl: HttpUrl,
   httpExchange: HttpExchange[Try]
 ) extends AccountOperations[Try] {
-  implicit protected val formats: Formats = DefaultFormats + AccountDetailReader
+
+  import AccountOperations.Implicits._
 
   override def accountDetail(accountId: AccountId): Try[AccountDetail] = {
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
@@ -56,7 +61,8 @@ class AccountOperationsAsyncInterpreter(
   horizonBaseUrl: HttpUrl,
   httpExchange: HttpExchange[Future]
 )(implicit ec: ExecutionContext) extends AccountOperations[Future] {
-  implicit protected val formats: Formats = DefaultFormats + AccountDetailReader
+
+  import AccountOperations.Implicits._
 
   override def accountDetail(accountId: AccountId): Future[AccountDetail] = {
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
