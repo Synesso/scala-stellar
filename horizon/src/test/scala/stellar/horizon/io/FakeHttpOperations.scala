@@ -1,12 +1,12 @@
 package stellar.horizon.io
 
 import okhttp3._
-import stellar.horizon.io.FakeHttpExchange.{Invoke, MediaTypes}
+import stellar.horizon.io.FakeHttpOperations.{Invoke, MediaTypes}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Success, Try}
 
-object FakeHttpExchange {
+object FakeHttpOperations {
   case class Invoke(request: Request) extends Call
   sealed trait Call
 
@@ -15,11 +15,11 @@ object FakeHttpExchange {
   }
 }
 
-trait FakeHttpExchange[F[_]] extends HttpExchange[F] {
-  def calls: Seq[FakeHttpExchange.Call]
+trait FakeHttpOperations[F[_]] extends HttpOperations[F] {
+  def calls: Seq[FakeHttpOperations.Call]
 }
 
-object FakeHttpExchangeSync {
+object FakeHttpOperationsSync {
   def jsonResponse(jsonText: String, statusCode: Int = 200, message: String = "OK"): Invoke => Try[Response] = invoke => Success(
     new Response.Builder()
       .protocol(Protocol.HTTP_2)
@@ -32,10 +32,10 @@ object FakeHttpExchangeSync {
   )
 }
 
-class FakeHttpExchangeSync(
+class FakeHttpOperationsSync(
   mockInvoke: Invoke => Try[Response]
-) extends FakeHttpExchange[Try] {
-  var calls: Seq[FakeHttpExchange.Call] = List.empty
+) extends FakeHttpOperations[Try] {
+  var calls: Seq[FakeHttpOperations.Call] = List.empty
 
   override def invoke(request: Request): Try[Response] = {
     val call = Invoke(request)
@@ -44,7 +44,7 @@ class FakeHttpExchangeSync(
   }
 }
 
-object FakeHttpExchangeAsync {
+object FakeHttpOperationsAsync {
   def jsonResponse(jsonText: String, statusCode: Int = 200, message: String = "OK"): Invoke => Future[Response] = invoke => Future.successful(
     new Response.Builder()
       .protocol(Protocol.HTTP_2)
@@ -60,10 +60,10 @@ object FakeHttpExchangeAsync {
 /**
  * For testing, declare the behaviour when invocations are made and record the requests.
  */
-class FakeHttpExchangeAsync(
+class FakeHttpOperationsAsync(
   mockInvoke: Invoke => Future[Response]
-)(implicit ec: ExecutionContext) extends FakeHttpExchange[Future] {
-  var calls: Seq[FakeHttpExchange.Call] = List.empty
+)(implicit ec: ExecutionContext) extends FakeHttpOperations[Future] {
+  var calls: Seq[FakeHttpOperations.Call] = List.empty
 
   override def invoke(request: Request): Future[Response] = {
     val call = Invoke(request)

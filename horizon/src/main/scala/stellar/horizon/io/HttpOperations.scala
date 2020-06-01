@@ -8,7 +8,7 @@ import stellar.BuildInfo
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.Try
 
-object HttpExchange {
+object HttpOperations {
 
   private[horizon] def preprocessRequest(request: Request): Request = {
     new Request.Builder(request)
@@ -21,11 +21,11 @@ object HttpExchange {
 /**
  * Execute an HTTP exchange with the declared effect type.
  */
-trait HttpExchange[F[_]] {
+trait HttpOperations[F[_]] {
   def invoke(request: Request): F[Response]
 }
 
-object HttpExchangeSyncInterpreter {
+object HttpOperationsSyncInterpreter {
   def exchange(client: OkHttpClient, request: Request): Try[Response] = Try {
     client.newCall(request).execute()
   }
@@ -34,14 +34,14 @@ object HttpExchangeSyncInterpreter {
 /**
  * Execute an HTTP exchange, returning a Try.
  */
-class HttpExchangeSyncInterpreter(exchange: Request => Try[Response]) extends HttpExchange[Try] {
+class HttpOperationsSyncInterpreter(exchange: Request => Try[Response]) extends HttpOperations[Try] {
   override def invoke(request: Request): Try[Response] = {
-    val outgoing = HttpExchange.preprocessRequest(request)
+    val outgoing = HttpOperations.preprocessRequest(request)
     exchange(outgoing)
   }
 }
 
-object HttpExchangeAsyncInterpreter {
+object HttpOperationsAsyncInterpreter {
   def exchange(client: OkHttpClient, request: Request): Future[Response] = {
     val call = client.newCall(request)
     val promise = Promise[Response]()
@@ -63,9 +63,9 @@ object HttpExchangeAsyncInterpreter {
 /**
  * Execute an HTTP exchange, returning a Future.
  */
-class HttpExchangeAsyncInterpreter(exchange: Request => Future[Response])(implicit ec: ExecutionContext) extends HttpExchange[Future] {
+class HttpOperationsAsyncInterpreter(exchange: Request => Future[Response])(implicit ec: ExecutionContext) extends HttpOperations[Future] {
   override def invoke(request: Request): Future[Response] = {
-    val outgoing = HttpExchange.preprocessRequest(request)
+    val outgoing = HttpOperations.preprocessRequest(request)
     exchange(outgoing)
   }
 }

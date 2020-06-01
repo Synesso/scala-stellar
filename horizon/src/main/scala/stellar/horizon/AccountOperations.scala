@@ -3,7 +3,7 @@ package stellar.horizon
 import okhttp3.{HttpUrl, Request}
 import org.json4s.native.JsonMethods.parse
 import org.json4s.{DefaultFormats, Formats}
-import stellar.horizon.io.HttpExchange
+import stellar.horizon.io.HttpOperations
 import stellar.horizon.json.AccountDetailReader
 import stellar.protocol.AccountId
 
@@ -39,7 +39,7 @@ trait AccountOperations[F[_]] {
  */
 class AccountOperationsSyncInterpreter(
   horizonBaseUrl: HttpUrl,
-  httpExchange: HttpExchange[Try]
+  httpExchange: HttpOperations[Try]
 ) extends AccountOperations[Try] {
 
   import AccountOperations.Implicits._
@@ -59,7 +59,7 @@ class AccountOperationsSyncInterpreter(
  */
 class AccountOperationsAsyncInterpreter(
   horizonBaseUrl: HttpUrl,
-  httpExchange: HttpExchange[Future]
+  httpExchange: HttpOperations[Future]
 )(implicit ec: ExecutionContext) extends AccountOperations[Future] {
 
   import AccountOperations.Implicits._

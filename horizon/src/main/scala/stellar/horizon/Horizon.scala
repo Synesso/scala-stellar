@@ -1,7 +1,7 @@
 package stellar.horizon
 
 import okhttp3.{HttpUrl, OkHttpClient}
-import stellar.horizon.io.{HttpExchange, HttpExchangeAsyncInterpreter, HttpExchangeSyncInterpreter}
+import stellar.horizon.io.{HttpOperations, HttpOperationsAsyncInterpreter, HttpOperationsSyncInterpreter}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -17,9 +17,9 @@ object Horizon {
   def sync(
     baseUrl: HttpUrl = Endpoints.Main,
     httpClient: OkHttpClient = new OkHttpClient(),
-    createHttpExchange: OkHttpClient => HttpExchange[Try] = { httpClient =>
-      new HttpExchangeSyncInterpreter(
-        exchange = HttpExchangeSyncInterpreter.exchange(httpClient, _)
+    createHttpExchange: OkHttpClient => HttpOperations[Try] = { httpClient =>
+      new HttpOperationsSyncInterpreter(
+        exchange = HttpOperationsSyncInterpreter.exchange(httpClient, _)
       )
     }
   ): Horizon[Try] = {
@@ -33,9 +33,9 @@ object Horizon {
   def async(
     baseUrl: HttpUrl = Endpoints.Main,
     httpClient: OkHttpClient = new OkHttpClient(),
-    createHttpExchange: (OkHttpClient, ExecutionContext) => HttpExchange[Future] = { (httpClient, ec) =>
-      new HttpExchangeAsyncInterpreter(
-        exchange = HttpExchangeAsyncInterpreter.exchange(httpClient, _)
+    createHttpExchange: (OkHttpClient, ExecutionContext) => HttpOperations[Future] = { (httpClient, ec) =>
+      new HttpOperationsAsyncInterpreter(
+        exchange = HttpOperationsAsyncInterpreter.exchange(httpClient, _)
       )(ec)
     }
   )(implicit ec: ExecutionContext): Horizon[Future] = {

@@ -4,7 +4,7 @@ import okhttp3.{Headers, HttpUrl, Response}
 import org.specs2.ScalaCheck
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
-import stellar.horizon.io.{FakeHttpExchange, FakeHttpExchangeAsync, FakeHttpExchangeSync}
+import stellar.horizon.io.{FakeHttpOperations, FakeHttpOperationsAsync, FakeHttpOperationsSync}
 import stellar.horizon.json.AccountDetails
 
 import scala.concurrent.Future
@@ -16,10 +16,10 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
   private val baseUrl = HttpUrl.parse("http://localhost/")
 
   "account operation blocking interpreter" should {
-    import FakeHttpExchangeSync.jsonResponse
+    import FakeHttpOperationsSync.jsonResponse
 
     "fetch account details by account id" >> prop { accountDetail: AccountDetail =>
-      val mockHttpExchange = new FakeHttpExchangeSync(
+      val mockHttpExchange = new FakeHttpOperationsSync(
         mockInvoke = jsonResponse(asJsonDoc(accountDetail))
       )
       val horizon = Horizon.sync(
@@ -34,7 +34,7 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
       val request = mockHttpExchange.calls
         .headOption
         .collect {
-          case FakeHttpExchange.Invoke(r) => r
+          case FakeHttpOperations.Invoke(r) => r
         }
         .get
 
@@ -43,10 +43,10 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
   }
 
   "account operation async interpreter" should {
-    import FakeHttpExchangeAsync.jsonResponse
+    import FakeHttpOperationsAsync.jsonResponse
 
     "fetch account details by account id" >> prop { accountDetail: AccountDetail =>
-      val mockHttpExchange = new FakeHttpExchangeAsync(
+      val mockHttpExchange = new FakeHttpOperationsAsync(
         mockInvoke = jsonResponse(asJsonDoc(accountDetail))
       )
       val horizon = Horizon.async(
@@ -61,7 +61,7 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
       val request = mockHttpExchange.calls
         .headOption
         .collect {
-          case FakeHttpExchange.Invoke(r) => r
+          case FakeHttpOperations.Invoke(r) => r
         }
         .get
 

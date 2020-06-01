@@ -9,7 +9,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Success, Try}
 
-class HttpExchangeSpec(implicit ec: ExecutionEnv) extends Specification {
+class HttpOperationsSpec(implicit ec: ExecutionEnv) extends Specification {
 
   private val request = new Request.Builder().url(HttpUrl.parse("https://horizon.stellar.org/")).build
   private val response = new Response.Builder()
@@ -29,7 +29,7 @@ class HttpExchangeSpec(implicit ec: ExecutionEnv) extends Specification {
         Success(response)
       }
 
-      new HttpExchangeSyncInterpreter(mockExchange).invoke(request) must beSuccessfulTry.like { case r: Response =>
+      new HttpOperationsSyncInterpreter(mockExchange).invoke(request) must beSuccessfulTry.like { case r: Response =>
         r mustEqual response
       }
     }
@@ -45,7 +45,7 @@ class HttpExchangeSpec(implicit ec: ExecutionEnv) extends Specification {
         Future.successful(response)
       }
 
-      new HttpExchangeAsyncInterpreter(mockExchange).invoke(request) must beLike[Response] { case r: Response =>
+      new HttpOperationsAsyncInterpreter(mockExchange).invoke(request) must beLike[Response] { case r: Response =>
         r mustEqual response
       }.await(0, 10.seconds)
     }
@@ -55,7 +55,7 @@ class HttpExchangeSpec(implicit ec: ExecutionEnv) extends Specification {
       def mockExchange(input: Request): Future[Response] = {
         Future.failed(dummyError)
       }
-      new HttpExchangeAsyncInterpreter(mockExchange).invoke(request) must throwAn[Throwable].like { case e: Throwable =>
+      new HttpOperationsAsyncInterpreter(mockExchange).invoke(request) must throwAn[Throwable].like { case e: Throwable =>
         e mustEqual dummyError
       }.await(0, 10.seconds)
     }
