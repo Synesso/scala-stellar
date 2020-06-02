@@ -35,8 +35,8 @@ object Horizon {
     httpClient: OkHttpClient = new OkHttpClient(),
     createHttpExchange: (OkHttpClient, ExecutionContext) => HttpOperations[Future] = { (httpClient, ec) =>
       new HttpOperationsAsyncInterpreter(
-        exchange = HttpOperationsAsyncInterpreter.exchange(httpClient, _)
-      )(ec)
+        exchange = HttpOperationsAsyncInterpreter.exchange(httpClient, _)(ec)
+      )
     }
   )(implicit ec: ExecutionContext): Horizon[Future] = {
     val httpExchange = createHttpExchange(httpClient, ec)

@@ -44,27 +44,15 @@ class HttpOperationsSyncInterpreter(exchange: Request => Try[Response]) extends 
 }
 
 object HttpOperationsAsyncInterpreter {
-  def exchange(client: OkHttpClient, request: Request): Future[Response] = {
-    val call = client.newCall(request)
-    val promise = Promise[Response]()
-    val callback = new Callback {
-      override def onFailure(call: Call, e: IOException): Unit = {
-        promise.failure(e)
-      }
-
-      override def onResponse(call: Call, response: Response): Unit = {
-        promise.success(response)
-      }
-    }
-    call.enqueue(callback)
-    promise.future
+  def exchange(client: OkHttpClient, request: Request)(implicit ec: ExecutionContext): Future[Response] = {
+    Future(client.newCall(request).execute())
   }
 }
 
 /**
  * Execute an HTTP exchange, returning a Future.
  */
-class HttpOperationsAsyncInterpreter(exchange: Request => Future[Response])(implicit ec: ExecutionContext) extends HttpOperations[Future] {
+class HttpOperationsAsyncInterpreter(exchange: Request => Future[Response]) extends HttpOperations[Future] {
   override def invoke(request: Request): Future[Response] = {
     val outgoing = HttpOperations.preprocessRequest(request)
     exchange(outgoing)
