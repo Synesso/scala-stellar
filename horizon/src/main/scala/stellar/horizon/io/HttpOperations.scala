@@ -16,6 +16,8 @@ object HttpOperations {
       .addHeader("X-Client-Version", BuildInfo.version)
       .build()
   }
+
+  case class NotFound(message: String) extends Exception(message)
 }
 
 /**

@@ -14,7 +14,7 @@ sealed trait Key {
   val kind: Byte
   val hash: ByteString
   def checksum: ByteString = ByteArrays.checksum(kind +: hash.toByteArray)
-  def encodeToString: String = codec.encode(kind +: hash.toByteArray ++: checksum.toByteArray)
+  lazy val encodeToString: String = codec.encode(kind +: hash.toByteArray ++: checksum.toByteArray)
     .map(_.toChar).mkString
 }
 
