@@ -21,7 +21,7 @@ class HttpOperationsSpec(implicit ec: ExecutionEnv) extends Specification {
 
   "blocking exchange" should {
     "execute request/response" >> {
-      def mockExchange(input: Request): Try[Response] = {
+      def fakeExchange(input: Request): Try[Response] = {
         input.url().toString mustEqual "https://horizon.stellar.org/"
         input.header("X-Client-Name") mustEqual BuildInfo.name
         input.header("X-Client-Version") mustEqual BuildInfo.version
@@ -29,15 +29,13 @@ class HttpOperationsSpec(implicit ec: ExecutionEnv) extends Specification {
         Success(response)
       }
 
-      new HttpOperationsSyncInterpreter(mockExchange).invoke(request) must beSuccessfulTry.like { case r: Response =>
-        r mustEqual response
-      }
+      new HttpOperationsSyncInterpreter(fakeExchange).invoke(request) must beSuccessfulTry(response)
     }
   }
 
   "async exchange" should {
     "execute request/response" >> {
-      def mockExchange(input: Request): Future[Response] = {
+      def fakeExchange(input: Request): Future[Response] = {
         input.url().toString mustEqual "https://horizon.stellar.org/"
         input.header("X-Client-Name") mustEqual BuildInfo.name
         input.header("X-Client-Version") mustEqual BuildInfo.version
@@ -45,19 +43,17 @@ class HttpOperationsSpec(implicit ec: ExecutionEnv) extends Specification {
         Future.successful(response)
       }
 
-      new HttpOperationsAsyncInterpreter(mockExchange).invoke(request) must beLike[Response] { case r: Response =>
-        r mustEqual response
-      }.await(0, 10.seconds)
+      new HttpOperationsAsyncInterpreter(fakeExchange).invoke(request) must beEqualTo(response)
+        .await(0, 10.seconds)
     }
 
     "capture failures" >> {
-      val dummyError = new RuntimeException
-      def mockExchange(input: Request): Future[Response] = {
-        Future.failed(dummyError)
+      val error = new RuntimeException
+      def fakeExchange(input: Request): Future[Response] = {
+        Future.failed(error)
       }
-      new HttpOperationsAsyncInterpreter(mockExchange).invoke(request) must throwAn[Throwable].like { case e: Throwable =>
-        e mustEqual dummyError
-      }.await(0, 10.seconds)
+      new HttpOperationsAsyncInterpreter(fakeExchange).invoke(request) must throwA[Throwable](error)
+        .await(0, 10.seconds)
     }
   }
 }

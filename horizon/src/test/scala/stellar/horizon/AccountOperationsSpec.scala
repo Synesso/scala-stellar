@@ -18,17 +18,17 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
     import FakeHttpOperationsSync.jsonResponse
 
     "fetch account details by account id" >> prop { accountDetail: AccountDetail =>
-      val mockHttpExchange = new FakeHttpOperationsSync(
-        mockInvoke = jsonResponse(asJsonDoc(accountDetail))
+      val fakeHttpExchange = new FakeHttpOperationsSync(
+        fakeInvoke = jsonResponse(asJsonDoc(accountDetail))
       )
       val horizon = Horizon.sync(
         baseUrl = baseUrl,
-        createHttpExchange = _ => mockHttpExchange
+        createHttpExchange = _ => fakeHttpExchange
       )
 
       horizon.account.detail(accountDetail.id) must beEqualTo(Success(accountDetail))
 
-      mockHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
+      fakeHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
         r.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
       }
     }
@@ -38,17 +38,17 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
     import FakeHttpOperationsAsync.jsonResponse
 
     "fetch account details by account id" >> prop { accountDetail: AccountDetail =>
-      val mockHttpExchange = new FakeHttpOperationsAsync(
-        mockInvoke = jsonResponse(asJsonDoc(accountDetail))
+      val fakeHttpExchange = new FakeHttpOperationsAsync(
+        fakeInvoke = jsonResponse(asJsonDoc(accountDetail))
       )
       val horizon = Horizon.async(
         baseUrl = baseUrl,
-        createHttpExchange = (_, _) => mockHttpExchange
+        createHttpExchange = (_, _) => fakeHttpExchange
       )
 
       horizon.account.detail(accountDetail.id) must beEqualTo(accountDetail).await
 
-      mockHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
+      fakeHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
         r.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
       }
     }

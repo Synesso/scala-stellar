@@ -33,14 +33,14 @@ object FakeHttpOperationsSync {
 }
 
 class FakeHttpOperationsSync(
-  mockInvoke: Invoke => Try[Response]
+  fakeInvoke: Invoke => Try[Response]
 ) extends FakeHttpOperations[Try] {
   var calls: Seq[FakeHttpOperations.Call] = List.empty
 
   override def invoke(request: Request): Try[Response] = {
     val call = Invoke(request)
     calls :+= call
-    mockInvoke(call)
+    fakeInvoke(call)
   }
 }
 
@@ -61,13 +61,13 @@ object FakeHttpOperationsAsync {
  * For testing, declare the behaviour when invocations are made and record the requests.
  */
 class FakeHttpOperationsAsync(
-  mockInvoke: Invoke => Future[Response]
+  fakeInvoke: Invoke => Future[Response]
 )(implicit ec: ExecutionContext) extends FakeHttpOperations[Future] {
   var calls: Seq[FakeHttpOperations.Call] = List.empty
 
   override def invoke(request: Request): Future[Response] = {
     val call = Invoke(request)
     calls :+= call
-    mockInvoke(call)
+    fakeInvoke(call)
   }
 }

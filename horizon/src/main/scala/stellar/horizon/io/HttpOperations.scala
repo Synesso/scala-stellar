@@ -57,7 +57,6 @@ object HttpOperationsAsyncInterpreter {
     call.enqueue(callback)
     promise.future
   }
-
 }
 
 /**
