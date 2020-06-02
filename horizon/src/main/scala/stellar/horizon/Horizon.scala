@@ -1,28 +1,52 @@
 package stellar.horizon
 
-import okhttp3.{HttpUrl, Request, Response}
-import stellar.BuildInfo
-import stellar.horizon.io.HttpExchange
+import okhttp3.{HttpUrl, OkHttpClient}
+import stellar.horizon.io.{HttpOperations, HttpOperationsAsyncInterpreter, HttpOperationsSyncInterpreter}
 
-/**
- * A Horizon instance and how to access it.
- * @param url the base URL of the instance
- * @tparam F the effect responses will be wrapped in
- */
-abstract class Horizon[F[_]](url: HttpUrl) {
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
-  def invoke(request: Request): F[Response]
 
-  def get(path: String, params: Map[String, String] = Map.empty): F[Response] = invoke(request(path, params))
+object Horizon {
 
-  private def request(path: String, params: Map[String, String] = Map.empty): Request = {
-    val requestUrl = params.foldLeft(url.newBuilder().addPathSegments(path)) { case (builder, (key, value)) =>
-      builder.addQueryParameter(key, value)
-    }.build()
-    new Request.Builder()
-      .url(requestUrl)
-      .addHeader("X-Client-Name", BuildInfo.name)
-      .addHeader("X-Client-Version", BuildInfo.version)
-      .build()
+  object Endpoints {
+    val Main = HttpUrl.parse("https://horizon.stellar.org/")
+    val Test = HttpUrl.parse("https://horizon-testnet.stellar.org/")
   }
+
+  def sync(
+    baseUrl: HttpUrl = Endpoints.Main,
+    httpClient: OkHttpClient = new OkHttpClient(),
+    createHttpExchange: OkHttpClient => HttpOperations[Try] = { httpClient =>
+      new HttpOperationsSyncInterpreter(
+        exchange = HttpOperationsSyncInterpreter.exchange(httpClient, _)
+      )
+    }
+  ): Horizon[Try] = {
+    val httpExchange = createHttpExchange(httpClient)
+
+    new Horizon[Try] {
+      override def accounts: AccountOperations[Try] = new AccountOperationsSyncInterpreter(baseUrl, httpExchange)
+    }
+  }
+
+  def async(
+    baseUrl: HttpUrl = Endpoints.Main,
+    httpClient: OkHttpClient = new OkHttpClient(),
+    createHttpExchange: (OkHttpClient, ExecutionContext) => HttpOperations[Future] = { (httpClient, ec) =>
+      new HttpOperationsAsyncInterpreter(
+        exchange = HttpOperationsAsyncInterpreter.exchange(httpClient, _)
+      )(ec)
+    }
+  )(implicit ec: ExecutionContext): Horizon[Future] = {
+    val httpExchange = createHttpExchange(httpClient, ec)
+
+    new Horizon[Future] {
+      override def accounts: AccountOperations[Future] = new AccountOperationsAsyncInterpreter(baseUrl, httpExchange)
+    }
+  }
+}
+
+sealed trait Horizon[F[_]] {
+  def accounts: AccountOperations[F]
 }
