@@ -26,7 +26,7 @@ object Horizon {
     val httpExchange = createHttpExchange(httpClient)
 
     new Horizon[Try] {
-      override def accounts: AccountOperations[Try] = new AccountOperationsSyncInterpreter(baseUrl, httpExchange)
+      override def account: AccountOperations[Try] = new AccountOperationsSyncInterpreter(baseUrl, httpExchange)
     }
   }
 
@@ -42,11 +42,11 @@ object Horizon {
     val httpExchange = createHttpExchange(httpClient, ec)
 
     new Horizon[Future] {
-      override def accounts: AccountOperations[Future] = new AccountOperationsAsyncInterpreter(baseUrl, httpExchange)
+      override def account: AccountOperations[Future] = new AccountOperationsAsyncInterpreter(baseUrl, httpExchange)
     }
   }
 }
 
 sealed trait Horizon[F[_]] {
-  def accounts: AccountOperations[F]
+  def account: AccountOperations[F]
 }

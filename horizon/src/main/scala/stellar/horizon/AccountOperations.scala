@@ -32,7 +32,7 @@ object AccountOperations {
  * @tparam F the effect type.
  */
 trait AccountOperations[F[_]] {
-  def accountDetail(accountId: AccountId): F[AccountDetail]
+  def detail(accountId: AccountId): F[AccountDetail]
 }
 
 /**
@@ -43,7 +43,7 @@ class AccountOperationsSyncInterpreter(
   httpExchange: HttpOperations[Try]
 ) extends AccountOperations[Try] {
 
-  override def accountDetail(accountId: AccountId): Try[AccountDetail] = {
+  override def detail(accountId: AccountId): Try[AccountDetail] = {
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
     for {
       response <- httpExchange.invoke(request)
@@ -61,7 +61,7 @@ class AccountOperationsAsyncInterpreter(
   httpExchange: HttpOperations[Future]
 )(implicit ec: ExecutionContext) extends AccountOperations[Future] {
 
-  override def accountDetail(accountId: AccountId): Future[AccountDetail] = {
+  override def detail(accountId: AccountId): Future[AccountDetail] = {
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
     for {
       response <- httpExchange.invoke(request)

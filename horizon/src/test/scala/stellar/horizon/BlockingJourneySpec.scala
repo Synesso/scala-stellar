@@ -16,7 +16,7 @@ class BlockingJourneySpec extends Specification with Matchers {
       val horizon = Horizon.sync()
       val accountId = AccountId("GBRAZP7U3SPHZ2FWOJLHPBO3XABZLKHNF6V5PUIJEEK6JEBKGXWD2IIE")
 
-      val accountDetail: Try[AccountDetail] = horizon.accounts.accountDetail(accountId)
+      val accountDetail: Try[AccountDetail] = horizon.account.detail(accountId)
 
       accountDetail must beSuccessfulTry.like(_.id mustEqual accountId)
     }

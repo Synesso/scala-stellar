@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import scala.concurrent.duration._
 
 /**
- * Top level tests that demonstrate how to use the blocking endpoints.
+ * Top level tests that demonstrate how to use the async endpoints.
  */
 class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
 
@@ -18,7 +18,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
       val horizon = Horizon.async()
       val accountId = AccountId("GBRAZP7U3SPHZ2FWOJLHPBO3XABZLKHNF6V5PUIJEEK6JEBKGXWD2IIE")
 
-      val accountDetail: Future[AccountDetail] = horizon.accounts.accountDetail(accountId)
+      val accountDetail: Future[AccountDetail] = horizon.account.detail(accountId)
 
       accountDetail.map(_.id) must beEqualTo(accountId).await(0, 10.seconds)
     }

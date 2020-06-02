@@ -26,7 +26,7 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
         createHttpExchange = _ => mockHttpExchange
       )
 
-      horizon.accounts.accountDetail(accountDetail.id) must beEqualTo(Success(accountDetail))
+      horizon.account.detail(accountDetail.id) must beEqualTo(Success(accountDetail))
 
       mockHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
         r.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
@@ -46,7 +46,7 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
         createHttpExchange = (_, _) => mockHttpExchange
       )
 
-      horizon.accounts.accountDetail(accountDetail.id) must beEqualTo(accountDetail).await
+      horizon.account.detail(accountDetail.id) must beEqualTo(accountDetail).await
 
       mockHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
         r.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
