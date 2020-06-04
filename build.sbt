@@ -2,6 +2,9 @@ ThisBuild / scalaVersion := "2.13.2"
 
 homepage in ThisBuild := Some(url("https://github.com/synesso/scala-stellar"))
 
+githubOwner := "synesso"
+githubRepository := "scala-stellar"
+
 lazy val `scala-sdk` = project
   .in(file("."))
   .aggregate(protocol, horizon)
