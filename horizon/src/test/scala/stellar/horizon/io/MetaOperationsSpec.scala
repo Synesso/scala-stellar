@@ -1,39 +1,40 @@
-package stellar.horizon
+package stellar.horizon.io
 
 import okhttp3.HttpUrl
 import org.specs2.ScalaCheck
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import stellar.horizon.io.HttpOperations.NotFound
-import stellar.horizon.io.{FakeHttpOperations, FakeHttpOperationsAsync, FakeHttpOperationsSync}
-import stellar.horizon.json.AccountDetails
+import stellar.horizon.json.HorizonStates
+import stellar.horizon.{AccountDetail, Horizon, HorizonState}
 import stellar.protocol.AccountId
 
 import scala.util.{Failure, Success}
 
-class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification with ScalaCheck {
-  import AccountDetails._
+class MetaOperationsSpec(implicit env: ExecutionEnv) extends Specification with ScalaCheck {
+  import HorizonStates._
 
   private val baseUrl = HttpUrl.parse("http://localhost/")
 
-  "account operation blocking interpreter" should {
+  "horizon meta blocking interpreter" should {
     import FakeHttpOperationsSync.jsonResponse
 
-    "fetch account details by account id" >> prop { accountDetail: AccountDetail =>
+    "fetch server state" >> prop { state: HorizonState =>
       val fakeHttpExchange = new FakeHttpOperationsSync(
-        fakeInvoke = jsonResponse(asJsonDoc(accountDetail)))
+        fakeInvoke = jsonResponse(asJsonDoc(state)))
 
       val horizon = Horizon.sync(
         baseUrl = baseUrl,
         createHttpExchange = _ => fakeHttpExchange)
 
-      horizon.account.detail(accountDetail.id) must beEqualTo(Success(accountDetail))
+      horizon.meta.state must beEqualTo(Success(state))
 
       fakeHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
-        r.url().toString mustEqual s"http://localhost/accounts/${accountDetail.id.encodeToString}"
+        r.url().toString mustEqual s"http://localhost/"
       }
     }
 
+/*
     "handle missing account details" >> {
       val fakeHttpExchange = new FakeHttpOperationsSync(
         fakeInvoke = jsonResponse(accountDetailMissing, 404, "not found"))
@@ -49,12 +50,14 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
         r.url().toString mustEqual s"http://localhost/accounts/${accountId.encodeToString}"
       }
     }
+*/
   }
 
-  "account operation async interpreter" should {
+/*
+  "horizon meta async interpreter" should {
     import FakeHttpOperationsAsync.jsonResponse
 
-    "fetch account details by account id" >> prop { accountDetail: AccountDetail =>
+    "fetch server state" >> prop { accountDetail: AccountDetail =>
       val fakeHttpExchange = new FakeHttpOperationsAsync(
         fakeInvoke = jsonResponse(asJsonDoc(accountDetail)))
 
@@ -86,4 +89,5 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
       }
     }
   }
+*/
 }

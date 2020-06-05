@@ -1,7 +1,7 @@
 package stellar.horizon
 
 import okhttp3.{HttpUrl, OkHttpClient}
-import stellar.horizon.io.{HttpOperations, HttpOperationsAsyncInterpreter, HttpOperationsSyncInterpreter}
+import stellar.horizon.io._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -27,6 +27,7 @@ object Horizon {
 
     new Horizon[Try] {
       override def account: AccountOperations[Try] = new AccountOperationsSyncInterpreter(baseUrl, httpExchange)
+      override def meta: MetaOperations[Try] = new MetaOperationsSyncInterpreter(baseUrl, httpExchange)
     }
   }
 
@@ -43,10 +44,12 @@ object Horizon {
 
     new Horizon[Future] {
       override def account: AccountOperations[Future] = new AccountOperationsAsyncInterpreter(baseUrl, httpExchange)
+      override def meta: MetaOperations[Future] = new MetaOperationsAsyncInterpreter(baseUrl, httpExchange)
     }
   }
 }
 
 sealed trait Horizon[F[_]] {
   def account: AccountOperations[F]
+  def meta: MetaOperations[F]
 }

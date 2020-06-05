@@ -1,9 +1,9 @@
-package stellar.horizon
+package stellar.horizon.io
 
 import okhttp3.{HttpUrl, Request, Response}
 import org.json4s.native.JsonMethods.parse
 import org.json4s.{DefaultFormats, Formats}
-import stellar.horizon.io.HttpOperations
+import stellar.horizon.AccountDetail
 import stellar.horizon.io.HttpOperations.NotFound
 import stellar.horizon.json.AccountDetailReader
 import stellar.protocol.AccountId
