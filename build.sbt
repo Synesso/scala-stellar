@@ -2,7 +2,7 @@ ThisBuild / scalaVersion := "2.13.2"
 
 homepage in ThisBuild := Some(url("https://github.com/synesso/scala-stellar"))
 
-lazy val `scala-sdk` = project
+lazy val `scala-stellar` = project
   .in(file("."))
   .aggregate(protocol, horizon)
 
@@ -36,7 +36,6 @@ lazy val horizon = project
 
 val logging = List(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
-  "ch.qos.logback" % "logback-classic" % "1.2.3",
 )
 val specs2 = List(
   "org.specs2" %% "specs2-core" % "4.9.4" % "test",
