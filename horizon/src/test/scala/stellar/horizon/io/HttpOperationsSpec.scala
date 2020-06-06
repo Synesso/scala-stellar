@@ -4,6 +4,7 @@ import okhttp3._
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import stellar.BuildInfo
+import stellar.horizon.io.HttpOperations.ServerError
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -20,31 +21,38 @@ class HttpOperationsSpec(implicit ec: ExecutionEnv) extends Specification {
     .build()
 
   "blocking exchange" should {
+    def fakeExchange(input: Request, resp: Response): Try[Response] = {
+      input.url().toString mustEqual "https://horizon.stellar.org/"
+      input.header("X-Client-Name") mustEqual BuildInfo.name
+      input.header("X-Client-Version") mustEqual BuildInfo.version
+
+      Success(resp)
+    }
+
     "execute request/response" >> {
-      def fakeExchange(input: Request): Try[Response] = {
-        input.url().toString mustEqual "https://horizon.stellar.org/"
-        input.header("X-Client-Name") mustEqual BuildInfo.name
-        input.header("X-Client-Version") mustEqual BuildInfo.version
+      new HttpOperationsSyncInterpreter(fakeExchange(_, response)).invoke(request) must beSuccessfulTry(response)
+    }
 
-        Success(response)
-      }
-
-      new HttpOperationsSyncInterpreter(fakeExchange).invoke(request) must beSuccessfulTry(response)
+    "handle server errors" >> {
+      val serverErrorResponse = response.newBuilder().code(500).message("broken").build()
+      new HttpOperationsSyncInterpreter(fakeExchange(_, serverErrorResponse))
+        .handle(serverErrorResponse, Try("ok")) must beFailedTry[String].like { case ServerError(message) =>
+          message mustEqual "broken"
+        }
     }
   }
 
   "async exchange" should {
+    def fakeExchange(input: Request, resp: Response): Future[Response] = {
+      input.url().toString mustEqual "https://horizon.stellar.org/"
+      input.header("X-Client-Name") mustEqual BuildInfo.name
+      input.header("X-Client-Version") mustEqual BuildInfo.version
+
+      Future.successful(resp)
+    }
+
     "execute request/response" >> {
-      def fakeExchange(input: Request): Future[Response] = {
-        input.url().toString mustEqual "https://horizon.stellar.org/"
-        input.header("X-Client-Name") mustEqual BuildInfo.name
-        input.header("X-Client-Version") mustEqual BuildInfo.version
-
-        Future.successful(response)
-      }
-
-      new HttpOperationsAsyncInterpreter(fakeExchange).invoke(request) must beEqualTo(response)
-        .await(0, 10.seconds)
+      new HttpOperationsAsyncInterpreter(fakeExchange(_, response)).invoke(request) must beEqualTo(response).await
     }
 
     "capture failures" >> {
@@ -52,8 +60,15 @@ class HttpOperationsSpec(implicit ec: ExecutionEnv) extends Specification {
       def fakeExchange(input: Request): Future[Response] = {
         Future.failed(error)
       }
-      new HttpOperationsAsyncInterpreter(fakeExchange).invoke(request) must throwA[Throwable](error)
-        .await(0, 10.seconds)
+      new HttpOperationsAsyncInterpreter(fakeExchange).invoke(request) must throwA[Throwable](error).await
+    }
+
+    "handle server errors" >> {
+      val serverErrorResponse = response.newBuilder().code(500).message("broken").build()
+      new HttpOperationsAsyncInterpreter(fakeExchange(_, serverErrorResponse))
+        .handle(serverErrorResponse, Future("ok")) must throwA[ServerError].like { case ServerError(message) =>
+        message mustEqual "broken"
+      }.await
     }
   }
 }

@@ -4,7 +4,7 @@ import okhttp3._
 import stellar.horizon.io.FakeHttpOperations.{Invoke, MediaTypes}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Success, Try}
+import scala.util.{Failure, Success, Try}
 
 object FakeHttpOperations {
   case class Invoke(request: Request) extends Call
@@ -42,6 +42,8 @@ class FakeHttpOperationsSync(
     calls :+= call
     fakeInvoke(call)
   }
+
+  override def ko[T](e: Exception): Try[T] = Failure(e)
 }
 
 object FakeHttpOperationsAsync {
@@ -70,4 +72,6 @@ class FakeHttpOperationsAsync(
     calls :+= call
     fakeInvoke(call)
   }
+
+  override def ko[T](e: Exception): Future[T] = Future.failed(e)
 }

@@ -48,10 +48,9 @@ class AccountOperationsSyncInterpreter(
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
     for {
       response <- httpExchange.invoke(request)
-      result <- response.code() match {
-        case 200 => Try(AccountOperations.responseToAccountDetails(response))
-        case 404 => Failure(NotFound(s"account.detail(${accountId.encodeToString})"))
-      }
+      result <- httpExchange.handle(response,
+        Try(AccountOperations.responseToAccountDetails(response))
+      )
     } yield result
   }
 
@@ -69,10 +68,9 @@ class AccountOperationsAsyncInterpreter(
     val request = AccountOperations.accountDetailRequest(horizonBaseUrl, accountId)
     for {
       response <- httpExchange.invoke(request)
-      result <- response.code() match {
-        case 200 => Future(AccountOperations.responseToAccountDetails(response))
-        case 404 => Future { throw NotFound(s"account.detail(${accountId.encodeToString})") }
-      }
+      result <- httpExchange.handle(response,
+        Future(AccountOperations.responseToAccountDetails(response))
+      )
     } yield result
   }
 }
