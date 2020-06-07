@@ -13,6 +13,7 @@ Use this software if you wish to query and transact on the Stellar network via S
 * [Horizon](horizon) - query network state via Horizon servers.
 * [Protocol](protocol) - primitives for operating with Stellar's serialised data format (XDR).
 
-## Docs
+## Links
 
 * [scaladoc](https://synesso.github.io/scala-stellar/api/)
+* [devlog](https://dev.to/jemmawson)
