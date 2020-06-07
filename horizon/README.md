@@ -31,17 +31,13 @@ val sdfHorizonTestSync: Horizon[Try] = Horizon.sync(baseUrl = Horizon.Endpoints.
 val localHorizon: Horizon[Future] = Horizon.async(baseUrl = HttpUrl.parse("http://localhost:8000/"))
 ```
 
+### Operations
+
 `Horizon` provides operations grouped into several themes:
 
-### Meta Operations
-
-These operations detail the network itself.
-
-* `horizon.meta.state` - current state and capabilities of the instance, including protocol & software versions, ledger
-  ids known and whether a testnet faucet (friendbot) is available.
-
-### Account Operations
-
-These operations provide information related to accounts.
-
-* `horizon.account.detail` - given an account id, provides the public details of that account.
+* `horizon`
+  * `account`
+    * `detail` - given an account id, provides the public details of that account.
+  * `meta`
+    * `state` - current state and capabilities of the instance, including protocol & software versions, ledger
+                  ids known and whether a testnet faucet (friendbot) is available.
