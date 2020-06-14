@@ -2,6 +2,7 @@ package stellar.horizon
 
 import org.specs2.matcher.Matchers
 import org.specs2.mutable.Specification
+import stellar.horizon.io.HttpOperations.NotFound
 import stellar.protocol.AccountId
 
 import scala.util.Try
@@ -20,6 +21,21 @@ class BlockingJourneySpec extends Specification with Matchers {
         s.friendbotUrl must beNone
         s.networkPassphrase mustEqual "Public Global Stellar Network ; September 2015"
       }
+    }
+
+    "be able to create a new account from a faucet (friendbot), if one is available" >> {
+      val horizon = Horizon.sync(Horizon.Endpoints.Test)
+      val accountId = AccountId.random
+      val response = horizon.friendbot.create(accountId)
+      // TODO (jem) - When we can transact, make sure to roll the created account back in.
+      response must beSuccessfulTry[TransactionResponse]
+    }
+
+    "fail to create a new account from a faucet (friendbot), if none is available" >> {
+      val horizon = Horizon.sync(Horizon.Endpoints.Main)
+      val accountId = AccountId.random
+      val response = horizon.friendbot.create(accountId)
+      response must beFailedTry[TransactionResponse].like { _ must beAnInstanceOf[NotFound] }
     }
 
     "be able to fetch account details" >> {

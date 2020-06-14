@@ -43,7 +43,7 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
         createHttpExchange = _ => fakeHttpExchange)
 
       val accountId = AccountId.random
-      horizon.account.detail(accountId) must beEqualTo(Failure(NotFound))
+      horizon.account.detail(accountId) must beEqualTo(Failure(NotFound()))
 
       fakeHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
         r.url().toString mustEqual s"http://localhost/accounts/${accountId.encodeToString}"
@@ -78,7 +78,7 @@ class AccountOperationsSpec(implicit env: ExecutionEnv) extends Specification wi
         createHttpExchange = (_, _) => fakeHttpExchange)
 
       val accountId = AccountId.random
-      horizon.account.detail(accountId) must throwA(NotFound).await
+      horizon.account.detail(accountId) must throwA(NotFound()).await
 
       fakeHttpExchange.calls must beLike { case Seq(FakeHttpOperations.Invoke(r)) =>
         r.url().toString mustEqual s"http://localhost/accounts/${accountId.encodeToString}"

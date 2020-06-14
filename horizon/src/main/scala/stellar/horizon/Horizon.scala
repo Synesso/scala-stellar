@@ -27,6 +27,7 @@ object Horizon {
 
     new Horizon[Try] {
       override def account: AccountOperations[Try] = new AccountOperationsSyncInterpreter(baseUrl, httpExchange)
+      override def friendbot: FriendBotOperations[Try] = new FriendBotOperationsSyncInterpreter(baseUrl, httpExchange)
       override def meta: MetaOperations[Try] = new MetaOperationsSyncInterpreter(baseUrl, httpExchange)
     }
   }
@@ -44,6 +45,7 @@ object Horizon {
 
     new Horizon[Future] {
       override def account: AccountOperations[Future] = new AccountOperationsAsyncInterpreter(baseUrl, httpExchange)
+      override def friendbot: FriendBotOperations[Future] = ???
       override def meta: MetaOperations[Future] = new MetaOperationsAsyncInterpreter(baseUrl, httpExchange)
     }
   }
@@ -51,5 +53,6 @@ object Horizon {
 
 sealed trait Horizon[F[_]] {
   def account: AccountOperations[F]
+  def friendbot: FriendBotOperations[F]
   def meta: MetaOperations[F]
 }

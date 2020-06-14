@@ -14,13 +14,13 @@ import scala.util.{Failure, Try}
 object AccountOperations {
   def accountDetailRequest(horizonBaseUrl: HttpUrl, accountId: AccountId): Request =
     new Request.Builder()
-    .url(
-      horizonBaseUrl
-        .newBuilder()
-        .addPathSegment(s"accounts")
-        .addPathSegment(accountId.encodeToString)
-        .build())
-    .build()
+      .url(
+        horizonBaseUrl
+          .newBuilder()
+          .addPathSegment("accounts")
+          .addPathSegment(accountId.encodeToString)
+          .build())
+      .build()
 
   def responseToAccountDetails(response: Response): AccountDetail = {
     implicit val formats: Formats = DefaultFormats + AccountDetailReader
@@ -33,6 +33,11 @@ object AccountOperations {
  * @tparam F the effect type.
  */
 trait AccountOperations[F[_]] {
+  /**
+   * Returns the details of the specified account
+   * @param accountId the account
+   * @return the details of the account
+   */
   def detail(accountId: AccountId): F[AccountDetail]
 }
 

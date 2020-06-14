@@ -16,7 +16,7 @@ object HttpOperations {
       .build()
   }
 
-  case object NotFound extends Exception
+  case class NotFound() extends Exception
   case class ServerError(message: String) extends Exception(message)
 }
 
@@ -30,7 +30,7 @@ trait HttpOperations[F[_]] {
     ok: => F[T]
   ): F[T] = response.code() match {
     case 200 => ok
-    case 404 => ko(NotFound)
+    case 404 => ko(NotFound())
     case 500 => ko(ServerError(response.message()))
   }
   def ko[T](e: Exception): F[T]

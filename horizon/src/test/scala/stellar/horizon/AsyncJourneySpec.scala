@@ -21,6 +21,14 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
       state.map(_.networkPassphrase) must beEqualTo("Public Global Stellar Network ; September 2015").await
     }
 
+/*
+    "be able to create a new account from a faucet (friendbot), if one is available" >> {
+      val horizon = Horizon.async(Horizon.Endpoints.Test)
+      val accountId = AccountId.random
+      horizon.friendbot.create(accountId)
+    }
+*/
+
     "be able to fetch account details" >> {
       val horizon = Horizon.async()
       val accountId = AccountId("GBRAZP7U3SPHZ2FWOJLHPBO3XABZLKHNF6V5PUIJEEK6JEBKGXWD2IIE")
