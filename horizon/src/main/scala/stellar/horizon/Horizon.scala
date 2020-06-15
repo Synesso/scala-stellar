@@ -45,7 +45,7 @@ object Horizon {
 
     new Horizon[Future] {
       override def account: AccountOperations[Future] = new AccountOperationsAsyncInterpreter(baseUrl, httpExchange)
-      override def friendbot: FriendBotOperations[Future] = ???
+      override def friendbot: FriendBotOperations[Future] = new FriendBotOperationsAsyncInterpreter(baseUrl, httpExchange)
       override def meta: MetaOperations[Future] = new MetaOperationsAsyncInterpreter(baseUrl, httpExchange)
     }
   }

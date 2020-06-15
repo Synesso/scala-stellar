@@ -5,6 +5,7 @@ import stellar.horizon.TransactionResponse
 import stellar.horizon.io.HttpOperations.NotFound
 import stellar.protocol.AccountId
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 object FriendBotOperations {
@@ -44,5 +45,20 @@ class FriendBotOperationsSyncInterpreter(
     request = FriendBotOperations.createAccountRequest(friendBotUrl, accountId)
     response <- httpExchange.invoke(request)
     result <- httpExchange.handle(response, Try(TransactionOperations.responseToTransactionResponse(response)))
+  } yield result
+}
+
+class FriendBotOperationsAsyncInterpreter(
+  horizonBaseUrl: HttpUrl,
+  httpExchange: HttpOperations[Future]
+)(implicit ec: ExecutionContext) extends FriendBotOperations[Future] {
+
+  private val meta = new MetaOperationsAsyncInterpreter(horizonBaseUrl, httpExchange)
+
+  override def create(accountId: AccountId): Future[TransactionResponse] = for {
+    friendBotUrl <- meta.state.map(_.friendbotUrl.getOrElse(throw NotFound()))
+    request = FriendBotOperations.createAccountRequest(friendBotUrl, accountId)
+    response <- httpExchange.invoke(request)
+    result <- httpExchange.handle(response, Future(TransactionOperations.responseToTransactionResponse(response)))
   } yield result
 }
