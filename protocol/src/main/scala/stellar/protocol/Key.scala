@@ -1,7 +1,9 @@
 package stellar.protocol
 
 import cats.data.State
-import net.i2p.crypto.eddsa.{EdDSAPublicKey, KeyPairGenerator}
+import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable.ED_25519_CURVE_SPEC
+import net.i2p.crypto.eddsa.spec.{EdDSANamedCurveTable, EdDSAPrivateKeySpec, EdDSAPublicKeySpec}
+import net.i2p.crypto.eddsa.{EdDSAPrivateKey, EdDSAPublicKey, KeyPairGenerator}
 import okio.ByteString
 import org.apache.commons.codec.binary.Base32
 import stellar.protocol.Key.codec
@@ -65,8 +67,6 @@ case class AccountId(hash: ByteString) extends SignerKey {
 }
 
 object AccountId extends Decoder[AccountId] {
-  private val generator = new KeyPairGenerator()
-
   val decode: State[Seq[Byte], AccountId] = for {
     _ <- int
     bs <- byteString(32)
@@ -74,8 +74,7 @@ object AccountId extends Decoder[AccountId] {
 
   def apply(accountId: String): AccountId = AccountId(Key.decodeFromString(accountId))
 
-  // TODO (jem) -> This is more useful if it comes from a random secret seed, which does not exist yet.
-  def random: AccountId = AccountId(new ByteString(generator.generateKeyPair().getPublic().asInstanceOf[EdDSAPublicKey].getAbyte))
+  def random: AccountId = Seed.random.accountId
 }
 
 /**
@@ -83,13 +82,23 @@ object AccountId extends Decoder[AccountId] {
  */
 case class Seed(hash: ByteString) extends Key {
   val kind: Byte = (18 << 3).toByte // S
+
+  val accountId: AccountId = {
+    val privKeySpec = new EdDSAPrivateKeySpec(hash.toByteArray, ED_25519_CURVE_SPEC)
+    val pubKeySpec = new EdDSAPublicKeySpec(privKeySpec.getA(), ED_25519_CURVE_SPEC)
+    AccountId(new ByteString(new EdDSAPublicKey(pubKeySpec).getAbyte))
+  }
 }
 
 object Seed {
+  private val generator = new KeyPairGenerator()
+
   def apply(secret: String): Seed = {
     assert(secret.startsWith("S"))
     Seed(Key.decodeFromString(secret))
   }
+
+  def random: Seed = Seed(new ByteString(generator.generateKeyPair().getPrivate().asInstanceOf[EdDSAPrivateKey].geta))
 }
 
 /**

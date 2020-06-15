@@ -13,6 +13,11 @@ class SeedSpec extends Specification with ScalaCheck {
     "encode to string" >> prop { seed: Seed =>
       Seed(seed.encodeToString) mustEqual seed
     }
+
+    "provide paired accountId" >> prop { seed: Seed =>
+      // TODO (jem) - For now we only check that it looks OK. But we should test the properties fully.
+      seed.accountId.encodeToString must beMatching("G[A-D][A-Z0-9]{54}")
+    }
   }
 }
 
