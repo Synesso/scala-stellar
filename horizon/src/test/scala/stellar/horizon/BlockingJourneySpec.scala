@@ -24,7 +24,7 @@ class BlockingJourneySpec extends Specification with Matchers {
     }
 
     "be able to create a new account from a faucet (friendbot), if one is available" >> {
-      val horizon = Horizon.sync(Horizon.Endpoints.Test)
+      val horizon = Horizon.sync(Horizon.Networks.Test)
       val accountId = AccountId.random
       val response = horizon.friendbot.create(accountId)
       // TODO (jem) - When we can transact, make sure to roll the created account back in.
@@ -32,7 +32,7 @@ class BlockingJourneySpec extends Specification with Matchers {
     }
 
     "fail to create a new account from a faucet (friendbot), if none is available" >> {
-      val horizon = Horizon.sync(Horizon.Endpoints.Main)
+      val horizon = Horizon.sync(Horizon.Networks.Main)
       val accountId = AccountId.random
       val response = horizon.friendbot.create(accountId)
       response must beFailedTry[TransactionResponse].like { _ must beAnInstanceOf[NotFound] }

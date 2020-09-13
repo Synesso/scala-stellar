@@ -15,8 +15,7 @@ object AccountOperations {
   def accountDetailRequest(horizonBaseUrl: HttpUrl, accountId: AccountId): Request =
     new Request.Builder()
       .url(
-        horizonBaseUrl
-          .newBuilder()
+        horizonBaseUrl.newBuilder()
           .addPathSegment("accounts")
           .addPathSegment(accountId.encodeToString)
           .build())

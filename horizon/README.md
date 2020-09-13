@@ -25,7 +25,7 @@ import stellar.horizon._
 val sdfHorizonMainAsync: Horizon[Future] = Horizon.async()
 
 // The SDF testnet Horizon instance, returning blocking (Try) values.
-val sdfHorizonTestSync: Horizon[Try] = Horizon.sync(baseUrl = Horizon.Endpoints.Test)
+val sdfHorizonTestSync: Horizon[Try] = Horizon.sync(baseUrl = Horizon.Networks.Test)
 ````
 
  If you have provisioned your own Horizon instance, you can configure this via URL.
@@ -67,4 +67,18 @@ With an account newly created on the network, obtain the details of the account.
 
 ```scala
 val accountDetail: Try[AccountDetail] = horizon.account.detail(accountId)
+```
+
+
+### Making a payment
+
+```scala
+val from: SigningKey
+val to: Address
+val response: Try[TransactionResponse] =
+  horizon.transact(from).pay(
+    sender = from.address,
+    recipient = to,
+    amount = Lumens(100)
+  )
 ```

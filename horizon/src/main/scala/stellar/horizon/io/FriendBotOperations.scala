@@ -41,7 +41,7 @@ class FriendBotOperationsSyncInterpreter(
   private val meta = new MetaOperationsSyncInterpreter(horizonBaseUrl, httpExchange)
 
   override def create(accountId: AccountId): Try[TransactionResponse] = for {
-    friendBotUrl <- meta.state.map(_.friendbotUrl.getOrElse(throw NotFound()))
+    friendBotUrl <- meta.state.map(_.friendbotUrl.getOrElse(throw NotFound("No friendbot URL defined")))
     request = FriendBotOperations.createAccountRequest(friendBotUrl, accountId)
     response <- httpExchange.invoke(request)
     result <- httpExchange.handle(response, Try(TransactionOperations.responseToTransactionResponse(response)))
@@ -56,7 +56,7 @@ class FriendBotOperationsAsyncInterpreter(
   private val meta = new MetaOperationsAsyncInterpreter(horizonBaseUrl, httpExchange)
 
   override def create(accountId: AccountId): Future[TransactionResponse] = for {
-    friendBotUrl <- meta.state.map(_.friendbotUrl.getOrElse(throw NotFound()))
+    friendBotUrl <- meta.state.map(_.friendbotUrl.getOrElse(throw NotFound("No friendbot URL defined")))
     request = FriendBotOperations.createAccountRequest(friendBotUrl, accountId)
     response <- httpExchange.invoke(request)
     result <- httpExchange.handle(response, Future(TransactionOperations.responseToTransactionResponse(response)))

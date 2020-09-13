@@ -1,9 +1,11 @@
 package stellar.protocol
 
+import java.security.MessageDigest
+
 import cats.data.State
 import net.i2p.crypto.eddsa.spec.EdDSANamedCurveTable.ED_25519_CURVE_SPEC
-import net.i2p.crypto.eddsa.spec.{EdDSANamedCurveTable, EdDSAPrivateKeySpec, EdDSAPublicKeySpec}
-import net.i2p.crypto.eddsa.{EdDSAPrivateKey, EdDSAPublicKey, KeyPairGenerator}
+import net.i2p.crypto.eddsa.spec.{EdDSAPrivateKeySpec, EdDSAPublicKeySpec}
+import net.i2p.crypto.eddsa.{EdDSAEngine, EdDSAPrivateKey, EdDSAPublicKey, KeyPairGenerator}
 import okio.ByteString
 import org.apache.commons.codec.binary.Base32
 import stellar.protocol.Key.codec
@@ -41,13 +43,13 @@ object Key {
 }
 
 /**
- * Only a subset of Keys can be signers. Seeds should not be the declared signer
- * (as they are the private dual of the AccountId).
+ * SignerKeys are publicly visible representations of a signing key.
+ * Notably, Seeds are used to sign transactions but their signer key is the dual AccountId.
  */
-sealed trait SignerKey extends Key with Encodable
+sealed trait PresentableSignerKey extends Key with Encodable
 
-object SignerKey extends Decoder[SignerKey] {
-  override val decode: State[Seq[Byte], SignerKey] = switch(
+object PresentableSignerKey extends Decoder[PresentableSignerKey] {
+  override val decode: State[Seq[Byte], PresentableSignerKey] = switch(
     byteString(32).map(AccountId(_)),
     byteString(32).map(PreAuthTx(_)),
     byteString(32).map(HashX(_))
@@ -55,11 +57,19 @@ object SignerKey extends Decoder[SignerKey] {
 }
 
 /**
+ * SigningKey is a key that can be used to sign data, including transactions.
+ */
+sealed trait SigningKey extends Key {
+  def sign(data: ByteString): Signature
+}
+
+/**
  * The public facing identifier of a stellar key pair. The string encoded form starts with
  * a G. If the account includes a subAccountId then the encoded form may start with an M and
  * include that sub account id.
  */
-case class AccountId(hash: ByteString) extends SignerKey {
+case class AccountId(hash: ByteString) extends PresentableSignerKey {
+  val hint: ByteString = new ByteString(hash.toByteArray.drop(hash.size() - 4))
   val kind: Byte = (6 << 3).toByte // G
   def encode: LazyList[Byte] = Encode.int(0) ++ Encode.bytes(32, hash)
 
@@ -80,13 +90,24 @@ object AccountId extends Decoder[AccountId] {
 /**
  * The private dual of the account id. Seeds are not encodable, because they are never transmitted.
  */
-case class Seed(hash: ByteString) extends Key {
+case class Seed(hash: ByteString) extends SigningKey {
   val kind: Byte = (18 << 3).toByte // S
 
-  val accountId: AccountId = {
-    val privKeySpec = new EdDSAPrivateKeySpec(hash.toByteArray, ED_25519_CURVE_SPEC)
-    val pubKeySpec = new EdDSAPublicKeySpec(privKeySpec.getA(), ED_25519_CURVE_SPEC)
-    AccountId(new ByteString(new EdDSAPublicKey(pubKeySpec).getAbyte))
+  private val sk: EdDSAPrivateKey =
+    new EdDSAPrivateKey(new EdDSAPrivateKeySpec(hash.toByteArray, ED_25519_CURVE_SPEC))
+  private val pk: EdDSAPublicKey =
+    new EdDSAPublicKey(new EdDSAPublicKeySpec(sk.getA, ED_25519_CURVE_SPEC))
+
+  val accountId: AccountId = AccountId(new ByteString(pk.getAbyte))
+
+  val address: Address = Address(accountId)
+
+
+  def sign(data: ByteString): Signature = {
+    val sig = new EdDSAEngine(MessageDigest.getInstance("SHA-512"))
+    sig.initSign(sk)
+    sig.update(data.asByteBuffer())
+    Signature(new ByteString(sig.sign), accountId.hint)
   }
 }
 
@@ -98,7 +119,7 @@ object Seed {
     Seed(Key.decodeFromString(secret))
   }
 
-  def random: Seed = Seed(new ByteString(generator.generateKeyPair().getPrivate().asInstanceOf[EdDSAPrivateKey].geta))
+  def random: Seed = Seed(new ByteString(generator.generateKeyPair().getPrivate.asInstanceOf[EdDSAPrivateKey].geta))
 }
 
 /**
@@ -106,9 +127,10 @@ object Seed {
  * of this kind are automatically removed from the account when the transaction is accepted by the
  * network. See https://www.stellar.org/developers/guides/concepts/multi-sig.html#pre-authorized-transaction
  */
-case class PreAuthTx(hash: ByteString) extends SignerKey {
+case class PreAuthTx(hash: ByteString) extends PresentableSignerKey with SigningKey {
   val kind: Byte = (19 << 3).toByte // T
   def encode: LazyList[Byte] = Encode.int(1) ++ Encode.bytes(32, hash)
+  override def sign(data: ByteString): Signature = ??? // TODO
 }
 
 object PreAuthTx extends Decoder[PreAuthTx] {
@@ -127,9 +149,10 @@ object PreAuthTx extends Decoder[PreAuthTx] {
  * Arbitrary 256-byte values can be used as signatures on transactions. The hash of such value are
  * able to be used as signers. See https://www.stellar.org/developers/guides/concepts/multi-sig.html#hashx
  */
-case class HashX(hash: ByteString) extends SignerKey {
+case class HashX(hash: ByteString) extends PresentableSignerKey with SigningKey {
   val kind: Byte = (23 << 3).toByte // X
   def encode: LazyList[Byte] = Encode.int(2) ++ Encode.bytes(32, hash)
+  override def sign(data: ByteString): Signature = ??? // TODO
 }
 
 object HashX extends Decoder[HashX] {

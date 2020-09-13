@@ -23,7 +23,7 @@ case class HorizonState(
   historyLatestLedger: Long,
   historyEldestLedger: Long,
   coreLatestLedger: Long,
-  networkPassphrase: String,
+  networkPassphrase: String, // TODO - NetworkId
   currentProtocolVersion: Int,
   coreSupportedProtocolVersion: Int,
   friendbotUrl: Option[HttpUrl]

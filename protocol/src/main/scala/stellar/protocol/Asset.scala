@@ -7,6 +7,8 @@ import stellar.protocol.xdr.{ByteArrays, Decoder, Encodable, Encode}
 
 sealed trait Asset extends Encodable {
   val code: String
+
+  def apply(units: Long): Amount = Amount(this, units)
 }
 
 /**

@@ -3,10 +3,10 @@ package stellar.horizon
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import stellar.horizon.io.HttpOperations.NotFound
-import stellar.protocol.AccountId
+import stellar.protocol.{AccountId, Lumens, Seed}
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 /**
  * Top level tests that demonstrate how to use the async endpoints.
@@ -23,7 +23,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
     }
 
     "be able to create a new account from a faucet (friendbot), if one is available" >> {
-      val horizon = Horizon.async(Horizon.Endpoints.Test)
+      val horizon = Horizon.async(Horizon.Networks.Test)
       val accountId = AccountId.random
       val response = horizon.friendbot.create(accountId)
       // TODO (jem) - When we can transact, make sure to roll the created account back in.
@@ -31,7 +31,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
     }
 
     "fail to create a new account from a faucet (friendbot), if none is available" >> {
-      val horizon = Horizon.async(Horizon.Endpoints.Main)
+      val horizon = Horizon.async(Horizon.Networks.Main)
       val accountId = AccountId.random
       val response = horizon.friendbot.create(accountId)
       response must throwA[NotFound].await(0, 10.seconds)
@@ -42,6 +42,30 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
       val accountId = AccountId("GBRAZP7U3SPHZ2FWOJLHPBO3XABZLKHNF6V5PUIJEEK6JEBKGXWD2IIE")
       val accountDetail: Future[AccountDetail] = horizon.account.detail(accountId)
       accountDetail.map(_.id) must beEqualTo(accountId).await(0, 10.seconds)
+    }
+
+    // TODO - Pay with a specified source and sequence number.
+    // TODO - maintain a local sequence number?
+
+    "be able to transact a payment" >> {
+      val horizon = Horizon.async(Horizon.Networks.Test)
+
+      // TODO (jem) - Test account creation should be performed once up-front.
+      val from = Seed.random
+      val to = Seed.random
+
+      val createFrom = horizon.friendbot.create(from.accountId)
+      val createTo = horizon.friendbot.create(to.accountId)
+      Await.ready(createFrom.flatMap(_ => createTo), 1.minute)
+
+      val response = horizon.transact(from).pay(
+        sender = from.address,
+        recipient = to.address,
+        amount = Lumens(100)
+      )
+
+      // TODO (jem) - Better assertions
+      response must beAnInstanceOf[TransactionResponse].await(0, 10.seconds)
     }
   }
 

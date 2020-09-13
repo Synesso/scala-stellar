@@ -6,14 +6,18 @@ import org.specs2.ScalaCheck
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import stellar.horizon.json.HorizonStates
-import stellar.horizon.{Horizon, HorizonState}
+import stellar.horizon.{Horizon, HorizonState, Network}
+import stellar.protocol.NetworkId
 
 import scala.util.Success
 
 class MetaOperationsSpec(implicit env: ExecutionEnv) extends Specification with ScalaCheck {
   import HorizonStates._
 
-  private val baseUrl = HttpUrl.parse("http://localhost/")
+  private val network = Network(
+    NetworkId("local"),
+    HttpUrl.parse("http://localhost/")
+  )
 
   "horizon meta blocking interpreter" should {
     import FakeHttpOperationsSync.jsonResponse
@@ -22,7 +26,7 @@ class MetaOperationsSpec(implicit env: ExecutionEnv) extends Specification with 
       val fakeHttpExchange = new FakeHttpOperationsSync(fakeInvoke = jsonResponse(asJsonDoc(state)))
 
       val horizon = Horizon.sync(
-        baseUrl = baseUrl,
+        network,
         createHttpExchange = _ => fakeHttpExchange)
 
       horizon.meta.state must beEqualTo(Success(state))
@@ -37,7 +41,7 @@ class MetaOperationsSpec(implicit env: ExecutionEnv) extends Specification with 
       val fakeHttpExchange = new FakeHttpOperationsSync(fakeInvoke = jsonResponse(document))
 
       val horizon = Horizon.sync(
-        baseUrl = baseUrl,
+        network,
         createHttpExchange = _ => fakeHttpExchange)
 
       horizon.meta.state must beFailedTry[HorizonState].like { case JsonParsingException(cause, body) =>
@@ -58,7 +62,7 @@ class MetaOperationsSpec(implicit env: ExecutionEnv) extends Specification with 
       val fakeHttpExchange = new FakeHttpOperationsAsync(fakeInvoke = jsonResponse(asJsonDoc(state)))
 
       val horizon = Horizon.async(
-        baseUrl = baseUrl,
+        network,
         createHttpExchange = (_, _) => fakeHttpExchange)
 
       horizon.meta.state must beEqualTo(state).await
@@ -73,7 +77,7 @@ class MetaOperationsSpec(implicit env: ExecutionEnv) extends Specification with 
       val fakeHttpExchange = new FakeHttpOperationsAsync(fakeInvoke = jsonResponse(document))
 
       val horizon = Horizon.async(
-        baseUrl = baseUrl,
+        network,
         createHttpExchange = (_, _) => fakeHttpExchange)
 
       horizon.meta.state must throwA[JsonParsingException].like { case JsonParsingException(cause, body) =>

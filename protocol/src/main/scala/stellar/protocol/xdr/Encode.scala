@@ -10,6 +10,7 @@ import okio.ByteString
 trait Encodable {
   def encode: LazyList[Byte]
   def encodeDiscriminated: LazyList[Byte] = encode
+  def encodeXdr: String = new ByteString(encode.toArray).base64()
 }
 
 object Encode extends LazyLogging {

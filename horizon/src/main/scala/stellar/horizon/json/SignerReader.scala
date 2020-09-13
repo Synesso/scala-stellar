@@ -1,7 +1,7 @@
 package stellar.horizon.json
 
 import org.json4s.{DefaultFormats, Formats, JObject}
-import stellar.protocol.{AccountId, Asset, HashX, Lumens, PreAuthTx, Signer, SignerKey, Token}
+import stellar.protocol.{AccountId, Asset, HashX, Lumens, PreAuthTx, Signer, PresentableSignerKey, Token}
 
 object SignerReader extends JsReader[Signer]({ o: JObject =>
   implicit val formats: Formats = DefaultFormats
