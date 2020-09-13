@@ -18,7 +18,7 @@ trait XdrSerdeMatchers extends AnyMatchers {
   def xdrDecodeAndEncode[T <: Encodable](decoder: Decoder[T]): Matcher[T] = new Matcher[T] {
     def apply[S <: T](s: Expectable[S]): MatchResult[S] = {
       val encodedBase64 = s.value.encodeXdr
-      val encoded = ByteString.decodeBase64(encodedBase64).toByteArray
+      val encoded = ByteString.decodeBase64(encodedBase64).toByteArray.toIndexedSeq
       val (remaining, value) = decoder.decode.run(encoded).value
       val ok = "encoded and decoded"
       if (remaining.nonEmpty) result(test = false, ok, "had left-over bytes", s)

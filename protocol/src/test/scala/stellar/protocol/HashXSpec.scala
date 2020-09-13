@@ -16,11 +16,22 @@ class HashXSpec extends Specification with ScalaCheck with XdrSerdeMatchers {
     "encode to string" >> prop { hashX: HashX =>
       HashX(hashX.encodeToString) mustEqual hashX
     }
+
+    "sign things deterministically" >> prop { (hashX: HashX, data: ByteString) =>
+      val signature = hashX.sign(data)
+      hashX.sign(data) mustEqual signature
+      signature.data mustEqual data
+      signature.hint.size() mustEqual 4
+    }
   }
 }
 
 object HashXs {
-  val genHashX: Gen[HashX] = Gen.containerOfN[Array, Byte](32, Arbitrary.arbByte.arbitrary)
+  val arbByte: Gen[Byte] = Arbitrary.arbByte.arbitrary
+  val genHashX: Gen[HashX] = Gen.containerOfN[Array, Byte](32, arbByte)
     .map(bs => HashX(new ByteString(bs)))
+  implicit val arbByteString: Arbitrary[ByteString] = Arbitrary(
+    Gen.containerOf[Array, Byte](arbByte).map(bs => new ByteString(bs))
+  )
   implicit val arbAccountId: Arbitrary[HashX] = Arbitrary(genHashX)
 }

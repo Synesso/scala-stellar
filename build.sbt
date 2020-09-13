@@ -1,4 +1,4 @@
-ThisBuild / scalaVersion := "2.13.2"
+ThisBuild / scalaVersion := "2.13.3"
 
 homepage in ThisBuild := Some(url("https://github.com/synesso/scala-stellar"))
 
@@ -32,7 +32,7 @@ lazy val horizon = project
       "org.json4s" %% "json4s-native" % "3.6.9",
     ),
     scalacOptions ++= List("-deprecation", "-feature"),
-    coverage(99)
+    coverage(95)
   )
 
 val logging = List(

@@ -146,13 +146,13 @@ object PreAuthTx extends Decoder[PreAuthTx] {
 }
 
 /**
- * Arbitrary 256-byte values can be used as signatures on transactions. The hash of such value are
+ * Arbitrary 256-byte values can be used as signatures on transactions. The SHA256 hash of such value are
  * able to be used as signers. See https://www.stellar.org/developers/guides/concepts/multi-sig.html#hashx
  */
 case class HashX(hash: ByteString) extends PresentableSignerKey with SigningKey {
   val kind: Byte = (23 << 3).toByte // X
   def encode: LazyList[Byte] = Encode.int(2) ++ Encode.bytes(32, hash)
-  override def sign(data: ByteString): Signature = ??? // TODO
+  override def sign(data: ByteString): Signature = Signature(data, data.sha256().substring(28))
 }
 
 object HashX extends Decoder[HashX] {
