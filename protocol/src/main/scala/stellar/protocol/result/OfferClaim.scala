@@ -10,10 +10,10 @@ case class OfferClaim(seller: AccountId, offerId: Long, sold: Amount, bought: Am
 }
 
 object OfferClaim extends Decoder[OfferClaim] {
-  val decode: State[Seq[Byte], OfferClaim] = for {
-    seller <- AccountId.decode
+  val decodeOld: State[Seq[Byte], OfferClaim] = for {
+    seller <- AccountId.decodeOld
     offerId <- long
-    sold <- Amount.decode
-    bought <- Amount.decode
+    sold <- Amount.decodeOld
+    bought <- Amount.decodeOld
   } yield OfferClaim(seller, offerId, sold, bought)
 }

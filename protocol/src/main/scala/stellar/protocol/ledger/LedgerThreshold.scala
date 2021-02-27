@@ -18,7 +18,7 @@ case class LedgerThreshold(master: Int, low: Int, med: Int, high: Int) extends E
 }
 
 object LedgerThreshold extends Decoder[LedgerThreshold] {
-  val decode: State[Seq[Byte], LedgerThreshold] = bytes(4).map { bs =>
+  val decodeOld: State[Seq[Byte], LedgerThreshold] = bytes(4).map { bs =>
     val Seq(master, low, med, high): Seq[Int] = bs.map(_ & 0xff)
     LedgerThreshold(master, low, med, high)
   }

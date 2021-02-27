@@ -91,11 +91,11 @@ case object PathPaymentOfferCrossesSelf extends PathPaymentResult(-11)
 case object PathPaymentSendMaxExceeded extends PathPaymentResult(-12)
 
 object PathPaymentResult extends Decoder[PathPaymentResult] {
-  val decode: State[Seq[Byte], PathPaymentResult] = int.flatMap {
+  val decodeOld: State[Seq[Byte], PathPaymentResult] = int.flatMap {
     case 0 => for {
-      claims <- arr(OfferClaim.decode)
-      destination <- AccountId.decode
-      amount <- Amount.decode
+      claims <- arr(OfferClaim.decodeOld)
+      destination <- AccountId.decodeOld
+      amount <- Amount.decodeOld
     } yield PathPaymentSuccess(claims, destination, amount)
     case -1 => State.pure(PathPaymentMalformed)
     case -2 => State.pure(PathPaymentUnderfunded)
@@ -105,7 +105,7 @@ object PathPaymentResult extends Decoder[PathPaymentResult] {
     case -6 => State.pure(PathPaymentDestinationNoTrust)
     case -7 => State.pure(PathPaymentDestinationNotAuthorised)
     case -8 => State.pure(PathPaymentDestinationLineFull)
-    case -9 => Asset.decode.map(PathPaymentNoIssuer)
+    case -9 => Asset.decodeOld.map(PathPaymentNoIssuer)
     case -10 => State.pure(PathPaymentTooFewOffers)
     case -11 => State.pure(PathPaymentOfferCrossesSelf)
     case -12 => State.pure(PathPaymentSendMaxExceeded)

@@ -29,17 +29,17 @@ case class AccountEntry(account: AccountId, balance: Long, seqNum: Long, numSubE
 }
 
 object AccountEntry extends Decoder[AccountEntry] {
-  val decode: State[Seq[Byte], AccountEntry] = for {
-    account <- AccountId.decode
+  val decodeOld: State[Seq[Byte], AccountEntry] = for {
+    account <- AccountId.decodeOld
     balance <- long
     seqNum <- long
     numSubEntries <- int
-    inflationDestination <- opt(AccountId.decode)
-    flags <- IssuerFlagSet.decode
+    inflationDestination <- opt(AccountId.decodeOld)
+    flags <- IssuerFlagSet.decodeOld
     homeDomain <- string.map(Some(_).filter(_.nonEmpty))
-    thresholds <- LedgerThreshold.decode
-    signers <- arr(Signer.decode)
-    liabilities <- opt(LiabilitySum.decode)
+    thresholds <- LedgerThreshold.decodeOld
+    signers <- arr(Signer.decodeOld)
+    liabilities <- opt(LiabilitySum.decodeOld)
   } yield AccountEntry(account, balance, seqNum, numSubEntries, inflationDestination, flags,
     homeDomain, thresholds, signers, liabilities)
 }
@@ -59,13 +59,13 @@ case class TrustLineEntry(account: AccountId, token: Token, balance: Long, limit
 }
 
 object TrustLineEntry extends Decoder[TrustLineEntry] {
-  val decode: State[Seq[Byte], TrustLineEntry] = for {
-    account <- AccountId.decode
-    asset <- Asset.decode.map(_.asInstanceOf[Token])
+  val decodeOld: State[Seq[Byte], TrustLineEntry] = for {
+    account <- AccountId.decodeOld
+    asset <- Asset.decodeOld.map(_.asInstanceOf[Token])
     balance <- long
     limit <- long
     issuerAuthorized <- bool
-    liabilities <- opt(LiabilitySum.decode)
+    liabilities <- opt(LiabilitySum.decodeOld)
   } yield TrustLineEntry(account, asset, balance, limit, issuerAuthorized, liabilities)
 }
 
@@ -84,13 +84,13 @@ case class OfferEntry(account: AccountId, offerId: Long, selling: Amount, buying
 }
 
 object OfferEntry extends Decoder[OfferEntry] {
-  val decode: State[Seq[Byte], OfferEntry] = for {
-    account <- AccountId.decode
+  val decodeOld: State[Seq[Byte], OfferEntry] = for {
+    account <- AccountId.decodeOld
     offerId <- long
-    selling <- Asset.decode
-    buying <- Asset.decode
+    selling <- Asset.decodeOld
+    buying <- Asset.decodeOld
     units <- long
-    price <- Price.decode
+    price <- Price.decodeOld
     _ <- int // flags
     _ <- int // ext
   } yield OfferEntry(account, offerId, Amount(selling, units), buying, price)
@@ -106,8 +106,8 @@ case class DataEntry(account: AccountId, name: String, value: ByteString) extend
 }
 
 object DataEntry extends Decoder[DataEntry] {
-  val decode: State[Seq[Byte], DataEntry] = for {
-    account <- AccountId.decode
+  val decodeOld: State[Seq[Byte], DataEntry] = for {
+    account <- AccountId.decodeOld
     name <- string
     value <- padded()
     _ <- int
@@ -115,10 +115,10 @@ object DataEntry extends Decoder[DataEntry] {
 }
 
 object LedgerEntryData extends Decoder[LedgerEntryData] {
-  override val decode: State[Seq[Byte], LedgerEntryData] = switch[LedgerEntryData](
-      widen(AccountEntry.decode),
-      widen(TrustLineEntry.decode),
-      widen(OfferEntry.decode),
-      widen(DataEntry.decode)
+  override val decodeOld: State[Seq[Byte], LedgerEntryData] = switch[LedgerEntryData](
+      widen(AccountEntry.decodeOld),
+      widen(TrustLineEntry.decodeOld),
+      widen(OfferEntry.decodeOld),
+      widen(DataEntry.decodeOld)
     )
 }

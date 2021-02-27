@@ -61,7 +61,7 @@ case object PaymentDestinationLineFull extends PaymentResult(-8)
 case object PaymentNoIssuer extends PaymentResult(-9)
 
 object PaymentResult extends Decoder[PaymentResult] {
-  override val decode: State[Seq[Byte], PaymentResult] = int.map {
+  override val decodeOld: State[Seq[Byte], PaymentResult] = int.map {
     case 0 => PaymentSuccess
     case -1 => PaymentMalformed
     case -2 => PaymentUnderfunded

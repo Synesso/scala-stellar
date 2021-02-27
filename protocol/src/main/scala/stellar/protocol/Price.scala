@@ -9,7 +9,7 @@ case class Price(n: Int, d: Int) extends Encodable {
 }
 
 object Price extends Decoder[Price] {
-  val decode: State[Seq[Byte], Price] = for {
+  val decodeOld: State[Seq[Byte], Price] = for {
     n <- int
     d <- int
   } yield Price(n, d)

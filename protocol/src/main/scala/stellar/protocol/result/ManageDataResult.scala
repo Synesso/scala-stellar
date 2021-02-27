@@ -10,7 +10,7 @@ sealed abstract class ManageDataResult(val opResultCode: Int) extends OpResult {
 }
 
 object ManageDataResult extends Decoder[ManageDataResult] {
-  val decode: State[Seq[Byte], ManageDataResult] = int.map {
+  val decodeOld: State[Seq[Byte], ManageDataResult] = int.map {
     case 0 => ManageDataSuccess
     case -1 => ManageDataNotSupportedYet
     case -2 => DeleteDataNameNotFound

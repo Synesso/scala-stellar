@@ -10,7 +10,7 @@ sealed abstract class BumpSequenceResult(val opResultCode: Int) extends OpResult
 }
 
 object BumpSequenceResult extends Decoder[BumpSequenceResult] {
-  val decode: State[Seq[Byte], BumpSequenceResult] = int.map {
+  val decodeOld: State[Seq[Byte], BumpSequenceResult] = int.map {
     case 0 => BumpSequenceSuccess
     case -1 => BumpSequenceBadSeqNo
   }

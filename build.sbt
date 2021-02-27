@@ -10,14 +10,20 @@ lazy val `scala-stellar` = project
 lazy val protocol = project
   .in(file("protocol"))
   .settings(
+    resolvers ++= List(
+      Resolver.jcenterRepo,
+      "jitpack" at "https://jitpack.io"
+    ),
     libraryDependencies ++= List(
-      "commons-codec" % "commons-codec" % "1.15",
-      "org.typelevel" %% "cats-core" % "2.2.0",
-      "net.i2p.crypto" % "eddsa" % "0.3.0",
+      "com.github.synesso" % "stellar-xdr-jre" % "15.1.0.3",
+      "com.gu" %% "spy" % "0.1.1",
       "com.squareup.okio" % "okio" % "2.8.0",
+      "commons-codec" % "commons-codec" % "1.15",
+      "net.i2p.crypto" % "eddsa" % "0.3.0",
+      "org.typelevel" %% "cats-core" % "2.2.0",
     ) ::: logging ::: specs2,
     scalacOptions ++= List("-deprecation", "-feature"),
-    coverage(99)
+    coverage(95)
   )
 
 lazy val horizon = project

@@ -87,21 +87,21 @@ class XdrPrimitivesSerdeSpec extends Specification with ScalaCheck with Decoder[
     }
 
     "work for a list of encodables" >> prop { xs: List[CompositeThing] =>
-      val (remainder, result) = arr(CompositeThing.decode).run(Encode.arr(xs)).value
+      val (remainder, result) = arr(CompositeThing.decodeOld).run(Encode.arr(xs)).value
       remainder must beEmpty
       result mustEqual xs
     }.set(minTestsOk = 5)
 
     "work for a composite of encodables" >> prop { c: CompositeThing =>
-      val (remainder, result) = CompositeThing.decode.run(c.encodeDiscriminated).value
+      val (remainder, result) = CompositeThing.decodeOld.run(c.encodeDiscriminated).value
       remainder must beEmpty
       result mustEqual c
     }
 
     "work for ignoring tail things" >> prop { (a: CompositeThing, b: CompositeThing) =>
       val encoded = a.encode ++ b.encode
-      val (remainder, result) = CompositeThing.decode
-        .flatMap(drop(CompositeThing.decode))
+      val (remainder, result) = CompositeThing.decodeOld
+        .flatMap(drop(CompositeThing.decodeOld))
         .run(encoded).value
       remainder must beEmpty
       result mustEqual a
@@ -181,14 +181,14 @@ class XdrPrimitivesSerdeSpec extends Specification with ScalaCheck with Decoder[
   }
 
   object CompositeThing extends Decoder[CompositeThing] {
-    val decode: State[Seq[Byte], CompositeThing] = for {
+    val decodeOld: State[Seq[Byte], CompositeThing] = for {
       bs <- opt(bytes)
       b <- bool
-      next <- opt[CompositeThing](CompositeThing.decode)
+      next <- opt[CompositeThing](CompositeThing.decodeOld)
       s <- string
     } yield CompositeThing(b, s, bs, next)
   }
 
   implicit private val arbInstant: Arbitrary[Instant] = Arbitrary(Gen.posNum[Long].map(Instant.ofEpochSecond))
-  override val decode: State[Seq[Byte], Int] = int
+  override val decodeOld: State[Seq[Byte], Int] = int
 }

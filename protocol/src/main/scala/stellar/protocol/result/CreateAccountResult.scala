@@ -9,7 +9,7 @@ sealed abstract class CreateAccountResult(opResultCode: Int) extends OpResult {
 }
 
 object CreateAccountResult extends Decoder[CreateAccountResult] {
-  val decode: State[Seq[Byte], CreateAccountResult] = int.map {
+  val decodeOld: State[Seq[Byte], CreateAccountResult] = int.map {
     case 0 => CreateAccountSuccess
     case -1 => CreateAccountMalformed
     case -2 => CreateAccountUnderfunded

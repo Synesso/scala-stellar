@@ -14,9 +14,9 @@ import scala.util.Try
 
 trait Decoder[U] extends LazyLogging {
 
-  val decode: State[Seq[Byte], U]
+  val decodeOld: State[Seq[Byte], U]
 
-  private def decode[T](bs: Seq[Byte], len: Int)(decoder: Seq[Byte] => T): (Seq[Byte], T) = {
+  private def decodeRaw[T](bs: Seq[Byte], len: Int)(decoder: Seq[Byte] => T): (Seq[Byte], T) = {
     if (bs.length < len) throw new EOFException("Insufficient data remains to parse.")
     val t = decoder(bs.take(len))
     logger.trace(s"Dropping {} to make {}", len, t)
@@ -24,11 +24,11 @@ trait Decoder[U] extends LazyLogging {
   }
 
   val int: State[Seq[Byte], Int] = State[Seq[Byte], Int] { bs =>
-    decode(bs, 4) { in => ByteBuffer.wrap(in.toArray).getInt }
+    decodeRaw(bs, 4) { in => ByteBuffer.wrap(in.toArray).getInt }
   }
 
   val long: State[Seq[Byte], Long] = State[Seq[Byte], Long] { bs =>
-    decode(bs, 8) { in => ByteBuffer.wrap(in.toArray).getLong }
+    decodeRaw(bs, 8) { in => ByteBuffer.wrap(in.toArray).getLong }
   }
 
   val instant: State[Seq[Byte], Instant] = long.map(Instant.ofEpochSecond)
@@ -36,7 +36,7 @@ trait Decoder[U] extends LazyLogging {
   val bool: State[Seq[Byte], Boolean] = int.map(_ == 1)
 
   def bytes(len: Int): State[Seq[Byte], List[Byte]] = State[Seq[Byte], List[Byte]] { bs =>
-    decode(bs, len) { _.take(len).toList }
+    decodeRaw(bs, len) { _.take(len).toList }
   }
 
   def byteString(len: Int): State[Seq[Byte], ByteString] = bytes(len).map(bs => new ByteString(bs.toArray))

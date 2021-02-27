@@ -9,7 +9,7 @@ case class LiabilitySum(buying: Long, selling: Long) extends Encodable {
 }
 
 object LiabilitySum extends Decoder[LiabilitySum] {
-  val decode: State[Seq[Byte], LiabilitySum] = for {
+  val decodeOld: State[Seq[Byte], LiabilitySum] = for {
     buying <- long
     selling <- long
     _ <- int

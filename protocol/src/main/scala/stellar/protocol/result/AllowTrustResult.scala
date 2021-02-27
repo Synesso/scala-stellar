@@ -10,7 +10,7 @@ sealed abstract class AllowTrustResult(val opResultCode: Int) extends OpResult {
 }
 
 object AllowTrustResult extends Decoder[AllowTrustResult] {
-  val decode: State[Seq[Byte], AllowTrustResult] = int.map {
+  val decodeOld: State[Seq[Byte], AllowTrustResult] = int.map {
     case 0 => AllowTrustSuccess
     case -1 => AllowTrustMalformed
     case -2 => AllowTrustNoTrustLine

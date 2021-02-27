@@ -11,7 +11,7 @@ class IssuerFlagSpec extends Specification with ScalaCheck {
   "issuer flag sets" should {
     "be deserialisable" >> prop { flags: Set[IssuerFlag] =>
       val encoded = Encode.int(flags.map(_.i + 0).fold(0)(_ | _))
-      val (remaining, value) = IssuerFlagSet.decode.run(encoded).value
+      val (remaining, value) = IssuerFlagSet.decodeOld.run(encoded).value
       remaining must beEmpty
       value mustEqual flags
     }

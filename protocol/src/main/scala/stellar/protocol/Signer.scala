@@ -9,8 +9,8 @@ case class Signer(key: PresentableSignerKey, weight: Int) extends Encodable {
 }
 
 object Signer extends Decoder[Signer] {
-  val decode: State[Seq[Byte], Signer] = for {
-    key <- PresentableSignerKey.decode
+  val decodeOld: State[Seq[Byte], Signer] = for {
+    key <- PresentableSignerKey.decodeOld
     weight <- int
   } yield Signer(key, weight)
 }

@@ -17,10 +17,10 @@ case class Payment(sender: Option[Address], recipient: Address, amount: Amount) 
 }
 
 object Payment extends Decoder[Payment] {
-  override val decode: State[Seq[Byte], Payment] = for {
-    sender <- opt(Address.decode)
+  override val decodeOld: State[Seq[Byte], Payment] = for {
+    sender <- opt(Address.decodeOld)
     _ <- int
-    recipient <- Address.decode
-    amount <- Amount.decode
+    recipient <- Address.decodeOld
+    amount <- Amount.decodeOld
   } yield Payment(sender, recipient, amount)
 }

@@ -13,7 +13,7 @@ sealed abstract class SetOptionsResult(val opResultCode: Int) extends OpResult {
 }
 
 object SetOptionsResult extends Decoder[SetOptionsResult] {
-  val decode: State[Seq[Byte], SetOptionsResult] = int.map {
+  val decodeOld: State[Seq[Byte], SetOptionsResult] = int.map {
     case 0 => SetOptionsSuccess
     case -1 => SetOptionsLowReserve
     case -2 => SetOptionsTooManySigners

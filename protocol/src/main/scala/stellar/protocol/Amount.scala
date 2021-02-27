@@ -8,8 +8,8 @@ case class Amount(asset: Asset, units: Long) extends Encodable {
 }
 
 object Amount extends Decoder[Amount] {
-  val decode: State[Seq[Byte], Amount] = for {
-    asset <- Asset.decode
+  val decodeOld: State[Seq[Byte], Amount] = for {
+    asset <- Asset.decodeOld
     units <- long
   } yield Amount(asset, units)
 }

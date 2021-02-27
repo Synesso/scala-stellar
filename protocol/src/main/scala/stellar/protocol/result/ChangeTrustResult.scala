@@ -10,7 +10,7 @@ sealed abstract class ChangeTrustResult(val opResultCode: Int) extends OpResult 
 }
 
 object ChangeTrustResult extends Decoder[ChangeTrustResult] {
-  val decode: State[Seq[Byte], ChangeTrustResult] = int.map {
+  val decodeOld: State[Seq[Byte], ChangeTrustResult] = int.map {
     case 0 => ChangeTrustSuccess
     case -1 => ChangeTrustMalformed
     case -2 => ChangeTrustNoIssuer

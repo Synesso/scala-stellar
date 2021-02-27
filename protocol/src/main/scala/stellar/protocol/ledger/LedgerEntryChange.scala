@@ -24,10 +24,10 @@ case class LedgerEntryState(entry: LedgerEntry) extends LedgerEntryChange {
 
 object LedgerEntryChange extends Decoder[LedgerEntryChange] {
 
-  val decode: State[Seq[Byte], LedgerEntryChange] = switch[LedgerEntryChange](
-    widen(LedgerEntry.decode.map(LedgerEntryCreate).flatMap(drop(int))),
-    widen(LedgerEntry.decode.map(LedgerEntryUpdate).flatMap(drop(int))),
-    widen(LedgerKey.decode.map(LedgerEntryDelete)),
-    widen(LedgerEntry.decode.map(LedgerEntryState).flatMap(drop(int)))
+  val decodeOld: State[Seq[Byte], LedgerEntryChange] = switch[LedgerEntryChange](
+    widen(LedgerEntry.decodeOld.map(LedgerEntryCreate).flatMap(drop(int))),
+    widen(LedgerEntry.decodeOld.map(LedgerEntryUpdate).flatMap(drop(int))),
+    widen(LedgerKey.decodeOld.map(LedgerEntryDelete)),
+    widen(LedgerEntry.decodeOld.map(LedgerEntryState).flatMap(drop(int)))
   )
 }

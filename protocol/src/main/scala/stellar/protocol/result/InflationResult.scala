@@ -22,8 +22,8 @@ case class InflationSuccess(payouts: List[InflationPayout]) extends InflationRes
 }
 
 object InflationResult extends Decoder[InflationResult] {
-  override val decode: State[Seq[Byte], InflationResult] = int.flatMap {
-    case 0 => arr(InflationPayout.decode).map(InflationSuccess)
+  override val decodeOld: State[Seq[Byte], InflationResult] = int.flatMap {
+    case 0 => arr(InflationPayout.decodeOld).map(InflationSuccess)
     case -1 => State.pure(InflationNotDue)
   }
 }
@@ -33,8 +33,8 @@ case class InflationPayout(recipient: AccountId, units: Long) extends Encodable 
 }
 
 object InflationPayout extends Decoder[InflationPayout] {
-  val decode: State[Seq[Byte], InflationPayout] = for {
-    recipient <- AccountId.decode
+  val decodeOld: State[Seq[Byte], InflationPayout] = for {
+    recipient <- AccountId.decodeOld
     units <- long
   } yield InflationPayout(recipient, units)
 }

@@ -30,6 +30,6 @@ object IssuerFlagSet extends Decoder[Set[IssuerFlag]] {
 
   def from(i: Int): Set[IssuerFlag] = all.filter { f => (i & f.i) == f.i }
 
-  val decode: State[Seq[Byte], Set[IssuerFlag]] = int.map(from)
+  val decodeOld: State[Seq[Byte], Set[IssuerFlag]] = int.map(from)
 }
 

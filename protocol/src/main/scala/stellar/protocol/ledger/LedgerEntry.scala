@@ -9,13 +9,13 @@ case class LedgerEntry(lastModifiedLedgerSeq: Int, data: LedgerEntryData, privat
 }
 
 object LedgerEntry extends Decoder[LedgerEntry] {
-  val decode: State[Seq[Byte], LedgerEntry] = for {
+  val decodeOld: State[Seq[Byte], LedgerEntry] = for {
     lastModifiedLedgerSeq <- int
     dataDisc <- switchInt[LedgerEntryData](
-      widen(AccountEntry.decode),
-      widen(TrustLineEntry.decode),
-      widen(OfferEntry.decode),
-      widen(DataEntry.decode)
+      widen(AccountEntry.decodeOld),
+      widen(TrustLineEntry.decodeOld),
+      widen(OfferEntry.decodeOld),
+      widen(DataEntry.decodeOld)
     )
     (data, disc) = dataDisc
   } yield LedgerEntry(lastModifiedLedgerSeq, data, disc)

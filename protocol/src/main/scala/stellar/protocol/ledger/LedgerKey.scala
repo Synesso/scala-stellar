@@ -8,11 +8,11 @@ sealed trait LedgerKey extends Encodable
 
 object LedgerKey extends Decoder[LedgerKey] {
 
-  val decode: State[Seq[Byte], LedgerKey] = switch[LedgerKey](
-    widen(AccountKey.decode),
-    widen(TrustLineKey.decode),
-    widen(OfferKey.decode),
-    widen(DataKey.decode)
+  val decodeOld: State[Seq[Byte], LedgerKey] = switch[LedgerKey](
+    widen(AccountKey.decodeOld),
+    widen(TrustLineKey.decodeOld),
+    widen(OfferKey.decodeOld),
+    widen(DataKey.decodeOld)
   )
 }
 
@@ -21,7 +21,7 @@ case class AccountKey(accountId: AccountId) extends LedgerKey {
 }
 
 object AccountKey extends Decoder[AccountKey] {
-  val decode: State[Seq[Byte], AccountKey] = AccountId.decode.map(AccountKey(_))
+  val decodeOld: State[Seq[Byte], AccountKey] = AccountId.decodeOld.map(AccountKey(_))
 }
 
 case class TrustLineKey(accountId: AccountId, token: Token) extends LedgerKey {
@@ -29,9 +29,9 @@ case class TrustLineKey(accountId: AccountId, token: Token) extends LedgerKey {
 }
 
 object TrustLineKey extends Decoder[TrustLineKey] {
-  val decode: State[Seq[Byte], TrustLineKey] = for {
-    account <- AccountId.decode
-    asset <- Asset.decode.map(_.asInstanceOf[Token])
+  val decodeOld: State[Seq[Byte], TrustLineKey] = for {
+    account <- AccountId.decodeOld
+    asset <- Asset.decodeOld.map(_.asInstanceOf[Token])
   } yield TrustLineKey(account, asset)
 }
 
@@ -40,8 +40,8 @@ case class OfferKey(accountId: AccountId, offerId: Long) extends LedgerKey {
 }
 
 object OfferKey extends Decoder[OfferKey] {
-  val decode: State[Seq[Byte], OfferKey] = for {
-    account <- AccountId.decode
+  val decodeOld: State[Seq[Byte], OfferKey] = for {
+    account <- AccountId.decodeOld
     offerId <- long
   } yield OfferKey(account, offerId)
 }
@@ -51,8 +51,8 @@ case class DataKey(accountId: AccountId, name: String) extends LedgerKey {
 }
 
 object DataKey extends Decoder[DataKey] {
-  val decode: State[Seq[Byte], DataKey] = for {
-    account <- AccountId.decode
+  val decodeOld: State[Seq[Byte], DataKey] = for {
+    account <- AccountId.decodeOld
     name <- string
   } yield DataKey(account, name)
 }

@@ -10,7 +10,7 @@ sealed abstract class CreatePassiveSellOfferResult(val opResultCode: Int) extend
 }
 
 object CreatePassiveSellOfferResult extends Decoder[CreatePassiveSellOfferResult] {
-  val decode: State[Seq[Byte], CreatePassiveSellOfferResult] = int.map {
+  val decodeOld: State[Seq[Byte], CreatePassiveSellOfferResult] = int.map {
     case 0 => CreatePassiveSellOfferSuccess
     case -1 => CreatePassiveSellOfferMalformed
     case -2 => CreatePassiveSellOfferSellNoTrust

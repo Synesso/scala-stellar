@@ -8,6 +8,7 @@ import net.i2p.crypto.eddsa.spec.{EdDSAPrivateKeySpec, EdDSAPublicKeySpec}
 import net.i2p.crypto.eddsa.{EdDSAEngine, EdDSAPrivateKey, EdDSAPublicKey, KeyPairGenerator}
 import okio.ByteString
 import org.apache.commons.codec.binary.Base32
+import org.stellar.xdr.{CryptoKeyType, MuxedAccount, PublicKey}
 import stellar.protocol.Key.codec
 import stellar.protocol.xdr.{ByteArrays, Decoder, Encodable, Encode}
 
@@ -49,7 +50,7 @@ object Key {
 sealed trait PresentableSignerKey extends Key with Encodable
 
 object PresentableSignerKey extends Decoder[PresentableSignerKey] {
-  override val decode: State[Seq[Byte], PresentableSignerKey] = switch(
+  override val decodeOld: State[Seq[Byte], PresentableSignerKey] = switch(
     byteString(32).map(AccountId(_)),
     byteString(32).map(PreAuthTx(_)),
     byteString(32).map(HashX(_))
@@ -77,7 +78,16 @@ case class AccountId(hash: ByteString) extends PresentableSignerKey {
 }
 
 object AccountId extends Decoder[AccountId] {
-  val decode: State[Seq[Byte], AccountId] = for {
+
+  def decode(xdr: PublicKey): AccountId = AccountId(new ByteString(xdr.getEd25519.getUint256))
+
+  def decode(xdr: MuxedAccount): AccountId = xdr.getDiscriminant match {
+    case CryptoKeyType.KEY_TYPE_ED25519 => AccountId(new ByteString(xdr.getEd25519.getUint256))
+    // case CryptoKeyType.KEY_TYPE_MUXED_ED25519 => AccountId(new ByteString(xdr.getMed25519.getEd25519.getUint256))
+    // case default => throw new IllegalStateException(s"Unexpected crypto key type: $default")
+  }
+
+  val decodeOld: State[Seq[Byte], AccountId] = for {
     _ <- int
     bs <- byteString(32)
   } yield AccountId(bs)
@@ -134,7 +144,7 @@ case class PreAuthTx(hash: ByteString) extends PresentableSignerKey with Signing
 }
 
 object PreAuthTx extends Decoder[PreAuthTx] {
-  val decode: State[Seq[Byte], PreAuthTx] = for {
+  val decodeOld: State[Seq[Byte], PreAuthTx] = for {
     _ <- int
     bs <- bytes(32)
   } yield PreAuthTx(new ByteString(bs.toArray))
@@ -156,7 +166,7 @@ case class HashX(hash: ByteString) extends PresentableSignerKey with SigningKey 
 }
 
 object HashX extends Decoder[HashX] {
-  val decode: State[Seq[Byte], HashX] = for {
+  val decodeOld: State[Seq[Byte], HashX] = for {
     _ <- int
     bs <- bytes(32)
   } yield HashX(new ByteString(bs.toArray))

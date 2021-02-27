@@ -11,12 +11,12 @@ sealed abstract class ManageSellOfferResult(val opResultCode: Int) extends OpRes
 }
 
 object ManageSellOfferResult extends Decoder[ManageSellOfferResult] {
-  val decode: State[Seq[Byte], ManageSellOfferResult] = int.flatMap {
+  val decodeOld: State[Seq[Byte], ManageSellOfferResult] = int.flatMap {
     case 0 => for {
-      claims <- arr(OfferClaim.decode)
+      claims <- arr(OfferClaim.decodeOld)
       result <- switch[ManageSellOfferResult](
-        widen(OfferEntry.decode.map(entry => ManageSellOfferCreated(claims, entry))),
-        widen(OfferEntry.decode.map(entry => ManageSellOfferUpdated(claims, entry))),
+        widen(OfferEntry.decodeOld.map(entry => ManageSellOfferCreated(claims, entry))),
+        widen(OfferEntry.decodeOld.map(entry => ManageSellOfferUpdated(claims, entry))),
         widen(State.pure(ManageSellOfferDeleted(claims)))
       )
     } yield result

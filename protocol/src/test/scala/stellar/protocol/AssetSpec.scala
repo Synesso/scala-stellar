@@ -18,7 +18,7 @@ object Assets {
   import AccountIds._
 
   val genAsset: Gen[Asset] = Gen.chooseNum(0, 12).flatMap {
-    case 0 => Gen.const(Lumens)
+    case 0 => Gen.const(Lumen)
     case n => genToken(n)
   }
 

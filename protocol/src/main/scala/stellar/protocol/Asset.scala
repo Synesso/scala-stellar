@@ -14,8 +14,11 @@ sealed trait Asset extends Encodable {
 /**
  * The network's native asset, XLM.
  */
-case object Lumens extends Asset {
+case object Lumen extends Asset {
+  val STROOPS_PER_LUMEN = 10_000_000L
   override val code: String = "XLM"
+  def apply(lumen: Int) = stroops(lumen * STROOPS_PER_LUMEN)
+  def stroops(stroops: Long): Amount = Amount(Lumen, stroops)
   override def encode: LazyList[Byte] = int(0)
 }
 
@@ -31,13 +34,13 @@ case class Token(code: String, issuer: AccountId) extends Asset {
 }
 
 object Asset extends Decoder[Asset] {
-  val decode :State[Seq[Byte], Asset] = switch(
-    State.pure(Lumens),
+  val decodeOld :State[Seq[Byte], Asset] = switch(
+    State.pure(Lumen),
     bytes(4)
-      .flatMap(code => AccountId.decode
+      .flatMap(code => AccountId.decodeOld
         .map(Token(ByteArrays.paddedByteArrayToString(code.toArray), _))),
     bytes(12)
-      .flatMap(code => AccountId.decode
+      .flatMap(code => AccountId.decodeOld
         .map(Token(ByteArrays.paddedByteArrayToString(code.toArray), _)))
   )
 }

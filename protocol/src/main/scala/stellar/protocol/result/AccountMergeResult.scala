@@ -10,7 +10,7 @@ sealed abstract class AccountMergeResult(opResultCode: Int) extends OpResult {
 }
 
 object AccountMergeResult extends Decoder[AccountMergeResult] {
-  val decode: State[Seq[Byte], AccountMergeResult] = int.flatMap {
+  val decodeOld: State[Seq[Byte], AccountMergeResult] = int.flatMap {
     case 0 => long.map(AccountMergeSuccess)
     case -1 => State.pure(AccountMergeMalformed)
     case -2 => State.pure(AccountMergeNoAccount)

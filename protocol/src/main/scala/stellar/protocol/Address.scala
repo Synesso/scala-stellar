@@ -16,7 +16,7 @@ case class Address(accountId: AccountId) extends Encodable {
 }
 
 object Address extends Decoder[Address] {
-  override val decode: State[Seq[Byte], Address] = int.flatMap {
+  override val decodeOld: State[Seq[Byte], Address] = int.flatMap {
     case 0x000 => byteString(32).map(bs => Address(AccountId(bs)))
   }
 

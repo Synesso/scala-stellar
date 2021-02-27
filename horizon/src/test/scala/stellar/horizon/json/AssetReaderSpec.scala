@@ -4,7 +4,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.json4s.native.JsonMethods.parse
 import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
-import stellar.protocol.{Asset, Lumens, Token}
+import stellar.protocol.{Asset, Lumen, Token}
 
 class AssetReaderSpec extends Specification with ScalaCheck {
   import AssetReaderSpec._
@@ -20,7 +20,7 @@ class AssetReaderSpec extends Specification with ScalaCheck {
 
 object AssetReaderSpec {
   def asJsonDoc(asset: Asset): String = asset match {
-    case Lumens => """{"asset_type":"native"}"""
+    case Lumen => """{"asset_type":"native"}"""
     case Token(code, issuer) =>
       s"""
          |{
