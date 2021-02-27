@@ -19,8 +19,9 @@ lazy val protocol = project
       "com.gu" %% "spy" % "0.1.1",
       "com.squareup.okio" % "okio" % "2.8.0",
       "commons-codec" % "commons-codec" % "1.15",
+      "org.typelevel" %% "cats-core" % "2.4.2",
       "net.i2p.crypto" % "eddsa" % "0.3.0",
-      "org.typelevel" %% "cats-core" % "2.2.0",
+      "com.squareup.okio" % "okio" % "2.10.0",
     ) ::: logging ::: specs2,
     scalacOptions ++= List("-deprecation", "-feature"),
     coverage(95)
@@ -34,8 +35,8 @@ lazy val horizon = project
   )
   .settings(
     libraryDependencies ++= List(
-      "com.squareup.okhttp3" % "okhttp" % "4.8.1",
-      "org.json4s" %% "json4s-native" % "3.6.9",
+      "com.squareup.okhttp3" % "okhttp" % "4.9.1",
+      "org.json4s" %% "json4s-native" % "3.6.10",
     ),
     scalacOptions ++= List("-deprecation", "-feature"),
     coverage(95)
@@ -45,8 +46,8 @@ val logging = List(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
 )
 val specs2 = List(
-  "org.specs2" %% "specs2-core" % "4.10.3" % "test",
-  "org.specs2" %% "specs2-scalacheck" % "4.10.3" % "test",
+  "org.specs2" %% "specs2-core" % "4.10.6" % "test",
+  "org.specs2" %% "specs2-scalacheck" % "4.10.6" % "test",
 )
 
 def coverage(min: Int) = List(
