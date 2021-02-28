@@ -3,7 +3,7 @@ package stellar.horizon
 import java.time.ZonedDateTime
 
 import okio.ByteString
-import stellar.protocol.{AccountId, Signer}
+import stellar.protocol.{AccountId, Amount, Asset, Lumen, Signer}
 
 /**
  * The details of a specific account.
@@ -21,5 +21,6 @@ case class AccountDetail(
   data: Map[String, ByteString]
 ) {
   def nextSequence: Long = sequence + 1
+  def balance(asset: Asset): Option[Amount] = balances.map(_.amount).find(_.asset == asset)
 }
 

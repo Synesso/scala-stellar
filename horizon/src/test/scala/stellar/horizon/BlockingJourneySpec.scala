@@ -4,7 +4,7 @@ import org.specs2.matcher.Matchers
 import org.specs2.mutable.Specification
 import stellar.event.AccountCreated
 import stellar.horizon.io.HttpOperations.NotFound
-import stellar.protocol.{AccountId, Lumen, Seed}
+import stellar.protocol.{AccountId, Address, Lumen, Seed}
 
 import scala.util.Try
 
@@ -13,7 +13,7 @@ import scala.util.Try
  */
 class BlockingJourneySpec extends Specification with Matchers {
 
-  private val FriendBotAccountId = AccountId("GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR")
+  private val FriendBotAddress = Address("GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR")
 
   "client software" should {
 
@@ -35,7 +35,7 @@ class BlockingJourneySpec extends Specification with Matchers {
           AccountCreated(
             accountId = accountId,
             startingBalance = Lumen(10_000).units,
-            fundingAccountId = FriendBotAccountId
+            source = FriendBotAddress
           )
         )
         res.feeCharged.units must beGreaterThanOrEqualTo(100L)

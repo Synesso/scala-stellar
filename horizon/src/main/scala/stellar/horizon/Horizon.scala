@@ -34,11 +34,12 @@ object Horizon {
     val httpExchange = createHttpExchange(httpClient)
 
     new Horizon[Try] {
+      override val networkId: NetworkId = network.id
       override def account: AccountOperations[Try] = new AccountOperationsSyncInterpreter(network.url, httpExchange)
       override def friendbot: FriendBotOperations[Try] = new FriendBotOperationsSyncInterpreter(network.url, httpExchange)
       override def meta: MetaOperations[Try] = new MetaOperationsSyncInterpreter(network.url, httpExchange)
-      override def transact(source: AccountId, transaction: Transaction): Try[TransactionResponse] =
-      new TransactionOperationsSyncInterpreter(network.url, httpExchange, source, account).transact(transaction)
+      override def transact(transaction: Transaction): Try[TransactionResponse] =
+      new TransactionOperationsSyncInterpreter(network.url, httpExchange).transact(transaction)
     }
   }
 
@@ -54,18 +55,20 @@ object Horizon {
     val httpExchange = createHttpExchange(httpClient, ec)
 
     new Horizon[Future] {
+      override val networkId: NetworkId = network.id
       override def account: AccountOperations[Future] = new AccountOperationsAsyncInterpreter(network.url, httpExchange)
       override def friendbot: FriendBotOperations[Future] = new FriendBotOperationsAsyncInterpreter(network.url, httpExchange)
       override def meta: MetaOperations[Future] = new MetaOperationsAsyncInterpreter(network.url, httpExchange)
-      override def transact(source: AccountId, transaction: Transaction): Future[TransactionResponse] =
-        new TransactionOperationsAsyncInterpreter(network.url, httpExchange, source, account).transact(transaction)
+      override def transact(transaction: Transaction): Future[TransactionResponse] =
+        new TransactionOperationsAsyncInterpreter(network.url, httpExchange).transact(transaction)
     }
   }
 }
 
 sealed trait Horizon[F[_]] {
+  val networkId: NetworkId
   def account: AccountOperations[F]
   def friendbot: FriendBotOperations[F]
   def meta: MetaOperations[F]
-  def transact(source: AccountId, transaction: Transaction): F[TransactionResponse]
+  def transact(transaction: Transaction): F[TransactionResponse]
 }

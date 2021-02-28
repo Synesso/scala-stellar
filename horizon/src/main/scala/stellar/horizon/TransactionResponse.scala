@@ -1,17 +1,15 @@
 package stellar.horizon
 
 import okio.ByteString
-import org.stellar.xdr.CreateAccountResultCode.CREATE_ACCOUNT_SUCCESS
-import org.stellar.xdr.OperationType.{CREATE_ACCOUNT, PAYMENT}
+import org.stellar.xdr.OperationType.{ACCOUNT_MERGE, CREATE_ACCOUNT, PAYMENT}
 import org.stellar.xdr._
-import stellar.event.{AccountCreated, CreateAccountEvent, OperationEvent, PaymentEvent}
-import stellar.protocol.{AccountId, Amount, Lumen}
+import stellar.event.{CreateAccountEvent, MergeAccountEvent, OperationEvent, PaymentEvent}
+import stellar.protocol.{Amount, Lumen}
 
 case class TransactionResponse(
   operationEvents: List[OperationEvent],
   feeCharged: Amount
 )
-
 
 object TransactionResponse {
   def apply(
@@ -30,7 +28,7 @@ object TransactionResponse {
         case EnvelopeType.ENVELOPE_TYPE_TX =>
           (envelope.getV1.getTx.getSourceAccount, envelope.getV1.getTx.getOperations.toList)
         // case EnvelopeType.ENVELOPE_TYPE_TX_FEE_BUMP => envelope.getFeeBump.getTx.getInnerTx.getV1.getTx.getOperations
-        case default => throw new IllegalStateException(s"Unexpected envelope type: $default")
+        // case default => throw new IllegalStateException(s"Unexpected envelope type: $default")
       }
 
       val rawResults = result.getResult.getResults.toList
@@ -38,9 +36,10 @@ object TransactionResponse {
       operationsRequested.zip(rawResults).map {
         case (requested, result) =>
           requested.getBody.getDiscriminant match {
+            case ACCOUNT_MERGE => MergeAccountEvent.decode(requested, result, sourceAccount)
             case CREATE_ACCOUNT => CreateAccountEvent.decode(requested, result, sourceAccount)
             case PAYMENT => PaymentEvent.decode(requested, result, sourceAccount)
-            case default => throw new IllegalStateException(s"Unexpected operation type: $default")
+            // case default => throw new IllegalStateException(s"Unexpected operation type: $default")
           }
       }
     }

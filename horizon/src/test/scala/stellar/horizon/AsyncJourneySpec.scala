@@ -2,10 +2,11 @@ package stellar.horizon
 
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
-import stellar.event.{AccountCreated, PaymentMade}
+import stellar.event.{AccountCreated, AccountMerged, PaymentMade}
 import stellar.horizon.io.HttpOperations.NotFound
-import stellar.protocol.op.{CreateAccount, Pay}
-import stellar.protocol.{AccountId, Lumen, Seed, Transaction}
+import stellar.horizon.testing.TestAccountPool
+import stellar.protocol.op.{CreateAccount, MergeAccount, Pay}
+import stellar.protocol._
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -15,7 +16,11 @@ import scala.concurrent.{Await, Future}
  */
 class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
 
-  private val FriendBotAccountId = AccountId("GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR")
+  private val FriendBotAddress = Address("GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR")
+  private val testAccountPool = TestAccountPool.create(100)
+
+  // Ensure that the test account pool is fully funded
+  step(Await.ready(testAccountPool, 1.minute))
 
   "client software" should {
 
@@ -35,7 +40,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
           AccountCreated(
             accountId = accountId,
             startingBalance = Lumen(10_000).units,
-            fundingAccountId = FriendBotAccountId
+            source = FriendBotAddress
           )
         )
         res.feeCharged.units must beGreaterThanOrEqualTo(100L)
@@ -56,6 +61,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
       accountDetail.map(_.id) must beEqualTo(accountId).await(0, 10.seconds)
     }
 
+    // TODO - use accounts from the pool from here on...
     "be able to create a new account" >> {
       val horizon = Horizon.async(Horizon.Networks.Test)
       val from = Seed.random
@@ -73,14 +79,14 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
         maxFee = 100,
       ).sign(from)
 
-      val response = horizon.transact(from.accountId, transaction)
+      val response = horizon.transact(transaction)
 
       response must beLike[TransactionResponse] { res =>
         res.operationEvents mustEqual List(
           AccountCreated(
             accountId = to.accountId,
             startingBalance = Lumen(5).units,
-            fundingAccountId = from.accountId
+            source = from.address
           )
         )
         res.feeCharged.units mustEqual 100L
@@ -107,12 +113,12 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
         maxFee = 100,
       ).sign(from)
 
-      val response = horizon.transact(from.accountId, transaction)
+      val response = horizon.transact(transaction)
 
       response must beLike[TransactionResponse] { res =>
         res.operationEvents mustEqual List(
           PaymentMade(
-            from = from.accountId,
+            source = from.address,
             to = to.address,
             amount = Lumen(5)
           )
@@ -120,6 +126,42 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
         res.feeCharged.units mustEqual 100L
       }.await(0, 10.seconds)
     }
+
+    "be able to close/merge an account" >> {
+      val horizon = Horizon.async(Horizon.Networks.Test)
+      val from = Seed.random
+      val to = Seed.random
+      Await.ready(Future.sequence(List(
+        horizon.friendbot.create(from.accountId),
+        horizon.friendbot.create(to.accountId)
+      )), 1.minute)
+      val sourceAccountDetails = Await.result(horizon.account.detail(from.accountId), 10.seconds)
+
+      val transaction = Transaction(
+        networkId = Horizon.Networks.Test.id,
+        source = from.accountId,
+        sequence = sourceAccountDetails.nextSequence,
+        operations = List(
+          MergeAccount(destination = to.address)
+        ),
+        maxFee = 100,
+      ).sign(from)
+
+      val response = horizon.transact(transaction)
+
+      response must beLike[TransactionResponse] { res =>
+        res.operationEvents mustEqual List(
+          AccountMerged(
+            source = from.address,
+            to = to.address,
+            amount = 99_999_999_900L
+          )
+        )
+        res.feeCharged.units mustEqual 100L
+      }.await(0, 10.seconds)
+    }
   }
 
+  // Close the accounts and return their funds back to friendbot
+  step { Await.result(testAccountPool.flatMap(_.close()), 10.minute) }
 }

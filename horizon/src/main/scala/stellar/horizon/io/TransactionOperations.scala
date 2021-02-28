@@ -74,9 +74,7 @@ trait TransactionOperations[F[_]] {
  */
 class TransactionOperationsSyncInterpreter(
   horizonBaseUrl: HttpUrl,
-  httpExchange: HttpOperations[Try],
-  source: AccountId,
-  accountOperations: AccountOperations[Try]
+  httpExchange: HttpOperations[Try]
 ) extends TransactionOperations[Try] {
 
   override def transact(transaction: Transaction): Try[TransactionResponse] = {
@@ -94,9 +92,7 @@ class TransactionOperationsSyncInterpreter(
  */
 class TransactionOperationsAsyncInterpreter(
   horizonBaseUrl: HttpUrl,
-  httpExchange: HttpOperations[Future],
-  source: AccountId,
-  accountOperations: AccountOperations[Future]
+  httpExchange: HttpOperations[Future]
 )(implicit ec: ExecutionContext) extends TransactionOperations[Future] {
 
   override def transact(transaction: Transaction): Future[TransactionResponse] = {

@@ -2,7 +2,7 @@ package stellar.event
 
 import org.stellar.xdr.CreateAccountResultCode.CREATE_ACCOUNT_SUCCESS
 import org.stellar.xdr.{CreateAccountOp, MuxedAccount, Operation, OperationResult, OperationResultCode}
-import stellar.protocol.AccountId
+import stellar.protocol.{AccountId, Address}
 
 
 /**
@@ -11,7 +11,7 @@ import stellar.protocol.AccountId
 case class AccountCreated(
   accountId: AccountId,
   startingBalance: Long,
-  fundingAccountId: AccountId // TODO - Address?
+  source: Address
 ) extends CreateAccountEvent
 
 object AccountCreated {
@@ -20,7 +20,7 @@ object AccountCreated {
     AccountCreated(
       accountId = AccountId.decode(op.getDestination.getAccountID),
       startingBalance = op.getStartingBalance.getInt64,
-      fundingAccountId = AccountId.decode(source)
+      source = Address.decode(source)
     )
   }
 }
