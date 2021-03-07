@@ -17,10 +17,9 @@ import scala.concurrent.{Await, Future}
 class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
 
   private val FriendBotAddress = Address("GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR")
-  private val testAccountPool = TestAccountPool.create(100)
+  private lazy val testAccountPool = Await.result(TestAccountPool.create(10), 1.minute)
 
-  // Ensure that the test account pool is fully funded
-  step(Await.ready(testAccountPool, 1.minute))
+  step { println(s"Initialised test account pool with size ${testAccountPool.size}") }
 
   "client software" should {
 
@@ -61,25 +60,24 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
       accountDetail.map(_.id) must beEqualTo(accountId).await(0, 10.seconds)
     }
 
-    // TODO - use accounts from the pool from here on...
     "be able to create a new account" >> {
       val horizon = Horizon.async(Horizon.Networks.Test)
-      val from = Seed.random
+      val from = testAccountPool.borrow
       val to = Seed.random
-      Await.ready(horizon.friendbot.create(from.accountId), 1.minute)
-      val sourceAccountDetails = Await.result(horizon.account.detail(from.accountId), 10.seconds)
 
-      val transaction = Transaction(
-        networkId = Horizon.Networks.Test.id,
-        source = from.accountId,
-        sequence = sourceAccountDetails.nextSequence,
-        operations = List(
-          CreateAccount(accountId = to.accountId, startingBalance = Lumen(5).units)
-        ),
-        maxFee = 100,
-      ).sign(from)
-
-      val response = horizon.transact(transaction)
+      val response = for {
+        sourceAccountDetails <- horizon.account.detail(from.accountId)
+        transaction = Transaction(
+          networkId = Horizon.Networks.Test.id,
+          source = from.accountId,
+          sequence = sourceAccountDetails.nextSequence,
+          operations = List(
+            CreateAccount(accountId = to.accountId, startingBalance = Lumen(5).units)
+          ),
+          maxFee = 100,
+        ).sign(from)
+        response <- horizon.transact(transaction)
+      } yield response
 
       response must beLike[TransactionResponse] { res =>
         res.operationEvents mustEqual List(
@@ -95,12 +93,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
 
     "be able to transact a payment" >> {
       val horizon = Horizon.async(Horizon.Networks.Test)
-      val from = Seed.random
-      val to = Seed.random
-      Await.ready(Future.sequence(List(
-        horizon.friendbot.create(from.accountId),
-        horizon.friendbot.create(to.accountId)
-      )), 1.minute)
+      val (from, to) = testAccountPool.borrowPair
       val sourceAccountDetails = Await.result(horizon.account.detail(from.accountId), 10.seconds)
 
       val transaction = Transaction(
@@ -129,12 +122,8 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
 
     "be able to close/merge an account" >> {
       val horizon = Horizon.async(Horizon.Networks.Test)
-      val from = Seed.random
-      val to = Seed.random
-      Await.ready(Future.sequence(List(
-        horizon.friendbot.create(from.accountId),
-        horizon.friendbot.create(to.accountId)
-      )), 1.minute)
+      val from = testAccountPool.take
+      val to = testAccountPool.borrow
       val sourceAccountDetails = Await.result(horizon.account.detail(from.accountId), 10.seconds)
 
       val transaction = Transaction(
@@ -154,7 +143,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
           AccountMerged(
             source = from.address,
             to = to.address,
-            amount = 99_999_999_900L
+            amount = 9_999_999_810L
           )
         )
         res.feeCharged.units mustEqual 100L
@@ -162,6 +151,8 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
     }
   }
 
+
   // Close the accounts and return their funds back to friendbot
-  step { Await.result(testAccountPool.flatMap(_.close()), 10.minute) }
+  step { println("Ensuring all tests are complete before closing pool.") }
+  step { Await.result(testAccountPool.close(), 10.minute) }
 }
