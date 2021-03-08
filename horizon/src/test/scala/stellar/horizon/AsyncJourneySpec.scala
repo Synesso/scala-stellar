@@ -1,5 +1,6 @@
 package stellar.horizon
 
+import com.typesafe.scalalogging.LazyLogging
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
 import stellar.event.{AccountCreated, AccountMerged, PaymentMade}
@@ -14,12 +15,10 @@ import scala.concurrent.{Await, Future}
 /**
  * Top level tests that demonstrate how to use the async endpoints.
  */
-class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
+class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification with LazyLogging {
 
   private val FriendBotAddress = Address("GAIH3ULLFQ4DGSECF2AR555KZ4KNDGEKN4AFI4SU2M7B43MGK3QJZNSR")
   private lazy val testAccountPool = Await.result(TestAccountPool.create(10), 1.minute)
-
-  step { println(s"Initialised test account pool with size ${testAccountPool.size}") }
 
   "client software" should {
 
@@ -42,7 +41,8 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
             source = FriendBotAddress
           )
         )
-        res.feeCharged.units must beGreaterThanOrEqualTo(100L)
+        res.feeCharged must beGreaterThanOrEqualTo(100L)
+        res.accepted must beTrue
       }.await(0, 30.seconds)
     }
 
@@ -87,7 +87,8 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
             source = from.address
           )
         )
-        res.feeCharged.units mustEqual 100L
+        res.feeCharged mustEqual 100L
+        res.accepted must beTrue
       }.await(0, 10.seconds)
     }
 
@@ -116,7 +117,8 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
             amount = Lumen(5)
           )
         )
-        res.feeCharged.units mustEqual 100L
+        res.feeCharged mustEqual 100L
+        res.accepted must beTrue
       }.await(0, 10.seconds)
     }
 
@@ -127,7 +129,7 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
       val sourceAccountDetails = Await.result(horizon.account.detail(from.accountId), 10.seconds)
 
       val transaction = Transaction(
-        networkId = Horizon.Networks.Test.id,
+        networkId = horizon.networkId,
         source = from.accountId,
         sequence = sourceAccountDetails.nextSequence,
         operations = List(
@@ -146,13 +148,13 @@ class AsyncJourneySpec(implicit ee: ExecutionEnv) extends Specification {
             amount = 9_999_999_810L
           )
         )
-        res.feeCharged.units mustEqual 100L
+        res.feeCharged mustEqual 100L
+        res.accepted must beTrue
       }.await(0, 10.seconds)
     }
   }
 
-
   // Close the accounts and return their funds back to friendbot
-  step { println("Ensuring all tests are complete before closing pool.") }
+  step { logger.info("Ensuring all tests are complete before closing pool.") }
   step { Await.result(testAccountPool.close(), 10.minute) }
 }

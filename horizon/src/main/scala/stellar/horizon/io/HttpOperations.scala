@@ -2,7 +2,7 @@ package stellar.horizon.io
 
 import okhttp3._
 import stellar.BuildInfo
-import stellar.horizon.io.HttpOperations.{NotFound, ServerError}
+import stellar.horizon.io.HttpOperations.{BadRequest, NotFound, ServerError}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Try}
@@ -16,6 +16,7 @@ object HttpOperations {
       .build()
   }
 
+  case class BadRequest(body: String) extends Exception(body)
   case class NotFound(body: String) extends Exception(body)
   case class ServerError(message: String) extends Exception(message)
 }
@@ -29,11 +30,11 @@ trait HttpOperations[F[_]] {
     response: Response,
     ok: => F[T]
   ): F[T] = response.code() match {
-    case 200 => ok
-    case 400 | 404 => ko(NotFound(response.body().string()))
-    case 500 => ko(ServerError(response.message()))
+    case 200 | 400 => ok
+    case 404 => err(NotFound(response.body().string()))
+    case 500 => err(ServerError(response.message()))
   }
-  def ko[T](e: Exception): F[T]
+  def err[T](e: Exception): F[T]
 }
 
 object HttpOperationsSyncInterpreter {
@@ -51,7 +52,7 @@ class HttpOperationsSyncInterpreter(exchange: Request => Try[Response]) extends 
     exchange(outgoing)
   }
 
-  override def ko[T](e: Exception): Try[T] = Failure(e)
+  override def err[T](e: Exception): Try[T] = Failure(e)
 }
 
 object HttpOperationsAsyncInterpreter {
@@ -69,5 +70,5 @@ class HttpOperationsAsyncInterpreter(exchange: Request => Future[Response]) exte
     exchange(outgoing)
   }
 
-  override def ko[T](e: Exception): Future[T] = Future.failed(e)
+  override def err[T](e: Exception): Future[T] = Future.failed(e)
 }

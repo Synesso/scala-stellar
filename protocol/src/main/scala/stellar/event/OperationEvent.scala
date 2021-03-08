@@ -1,12 +1,13 @@
 package stellar.event
 
 import org.stellar.xdr.CreateAccountResultCode.CREATE_ACCOUNT_SUCCESS
-import org.stellar.xdr.PaymentResultCode.PAYMENT_SUCCESS
+import org.stellar.xdr.PaymentResultCode.{PAYMENT_SUCCESS, PAYMENT_UNDERFUNDED}
 import org.stellar.xdr.{AccountMergeResultCode, MuxedAccount, Operation, OperationResult, OperationResultCode}
 import stellar.protocol.Address
 
 sealed trait OperationEvent {
   val source: Address
+  val accepted: Boolean
 }
 
 trait CreateAccountEvent extends OperationEvent
@@ -41,6 +42,11 @@ object PaymentEvent {
           case PAYMENT_SUCCESS => PaymentMade.decode(
             op = requested.getBody.getPaymentOp,
             source = Option(requested.getSourceAccount).getOrElse(source)
+          )
+          case paymentResult => PaymentFailed.decode(
+            op = requested.getBody.getPaymentOp,
+            source = Option(requested.getSourceAccount).getOrElse(source),
+            failure = paymentResult
           )
         }
     }

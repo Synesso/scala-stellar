@@ -1,7 +1,6 @@
 package stellar.event
 
-import org.stellar.xdr.CreateAccountResultCode.CREATE_ACCOUNT_SUCCESS
-import org.stellar.xdr.{CreateAccountOp, MuxedAccount, Operation, OperationResult, OperationResultCode}
+import org.stellar.xdr.{CreateAccountOp, MuxedAccount}
 import stellar.protocol.{AccountId, Address}
 
 
@@ -12,7 +11,9 @@ case class AccountCreated(
   accountId: AccountId,
   startingBalance: Long,
   source: Address
-) extends CreateAccountEvent
+) extends CreateAccountEvent {
+  override val accepted: Boolean = true
+}
 
 object AccountCreated {
 

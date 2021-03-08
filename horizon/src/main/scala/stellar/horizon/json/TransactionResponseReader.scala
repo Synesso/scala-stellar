@@ -7,12 +7,13 @@ import stellar.horizon.TransactionResponse
 object TransactionResponseReader extends JsReader[TransactionResponse]({ o: JObject =>
   implicit val formats: Formats = DefaultFormats
 
+  val xdrObj = (o \ "successful").extractOpt[Boolean] match {
+    case Some(true) => o
+    case _ => o \ "extras"
+  }
   TransactionResponse(
-    (o \ "hash").extract[String],
-    (o \ "ledger").extract[Long],
-    (o \ "envelope_xdr").extract[String],
-    (o \ "result_xdr").extract[String],
-    (o \ "result_meta_xdr").extract[String]
+    (xdrObj \ "envelope_xdr").extract[String],
+    (xdrObj \ "result_xdr").extract[String],
   )
 })
 

@@ -4,24 +4,25 @@ import okio.ByteString
 import org.stellar.xdr.OperationType.{ACCOUNT_MERGE, CREATE_ACCOUNT, PAYMENT}
 import org.stellar.xdr._
 import stellar.event.{CreateAccountEvent, MergeAccountEvent, OperationEvent, PaymentEvent}
-import stellar.protocol.{Amount, Lumen}
 
+/** The result of submitting a transaction to a network */
 case class TransactionResponse(
+  /** The resulting event for each submitted operation */
   operationEvents: List[OperationEvent],
-  feeCharged: Amount
+  /** The cost in stroops for the submitting account */
+  feeCharged: Long,
+  /** Whether the transaction was accepted by the network and included in the ledger */
+  accepted: Boolean
 )
 
 object TransactionResponse {
   def apply(
-    hash: String,
-    ledger: Long,
     envelopeXdr: String,
-    resultXdr: String,
-    resultMetaXdr: String
+    resultXdr: String
   ): TransactionResponse = {
     val result: TransactionResult = TransactionResult.decode(ByteString.decodeBase64(resultXdr))
     val envelope: TransactionEnvelope = TransactionEnvelope.decode(ByteString.decodeBase64(envelopeXdr))
-    val feeCharged: Amount = Lumen.stroops(result.getFeeCharged.getInt64)
+    val feeCharged: Long = result.getFeeCharged.getInt64
     val operationEvents: List[OperationEvent] = {
       val (sourceAccount, operationsRequested) = envelope.getDiscriminant match {
         // case EnvelopeType.ENVELOPE_TYPE_TX_V0 => envelope.getV0.getTx.getOperations
@@ -46,7 +47,8 @@ object TransactionResponse {
 
     TransactionResponse(
       operationEvents = operationEvents,
-      feeCharged = feeCharged
+      feeCharged = feeCharged,
+      accepted = operationEvents.forall(_.accepted)
     )
   }
 }

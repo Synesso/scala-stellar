@@ -10,7 +10,9 @@ case class AccountMerged(
   override val source: Address,
   to: Address,
   amount: Long
-) extends MergeAccountEvent
+) extends MergeAccountEvent {
+  override val accepted: Boolean = true
+}
 
 object AccountMerged {
   def decode(

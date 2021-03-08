@@ -43,7 +43,9 @@ lazy val horizon = project
   )
 
 val logging = List(
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+  "org.slf4j" % "slf4j-simple" % "2.0.0-alpha1" % Test
 )
 val specs2 = List(
   "org.specs2" %% "specs2-core" % "4.10.6" % "test",

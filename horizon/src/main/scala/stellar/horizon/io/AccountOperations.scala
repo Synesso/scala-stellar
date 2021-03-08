@@ -53,7 +53,7 @@ class AccountOperationsSyncInterpreter(
     for {
       response <- httpExchange.invoke(request)
       result <- httpExchange.handle(response,
-        Try(AccountOperations.responseToAccountDetails(response))
+        Try(AccountOperations.responseToAccountDetails(response)),
       )
     } yield result
   }

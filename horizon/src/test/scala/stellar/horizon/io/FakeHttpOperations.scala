@@ -43,7 +43,7 @@ class FakeHttpOperationsSync(
     fakeInvoke(call)
   }
 
-  override def ko[T](e: Exception): Try[T] = Failure(e)
+  override def err[T](e: Exception): Try[T] = Failure(e)
 }
 
 object FakeHttpOperationsAsync {
@@ -73,5 +73,5 @@ class FakeHttpOperationsAsync(
     fakeInvoke(call)
   }
 
-  override def ko[T](e: Exception): Future[T] = Future.failed(e)
+  override def err[T](e: Exception): Future[T] = Future.failed(e)
 }
