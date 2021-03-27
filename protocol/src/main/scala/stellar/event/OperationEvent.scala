@@ -2,7 +2,7 @@ package stellar.event
 
 import org.stellar.xdr.CreateAccountResultCode.CREATE_ACCOUNT_SUCCESS
 import org.stellar.xdr.PaymentResultCode.{PAYMENT_SUCCESS, PAYMENT_UNDERFUNDED}
-import org.stellar.xdr.{AccountMergeResultCode, MuxedAccount, Operation, OperationResult, OperationResultCode}
+import org.stellar.xdr.{AccountMergeResultCode, ChangeTrustResultCode, MuxedAccount, Operation, OperationResult, OperationResultCode}
 import stellar.protocol.Address
 
 sealed trait OperationEvent {
@@ -67,6 +67,26 @@ object MergeAccountEvent {
             source = Option(requested.getSourceAccount).getOrElse(source),
             destination = requested.getBody.getDestination,
             amount = result.getTr.getAccountMergeResult.getSourceAccountBalance
+          )
+        }
+    }
+  }
+}
+
+trait TrustChangeEvent extends OperationEvent
+object TrustChangeEvent {
+  def decode(
+    requested: Operation,
+    result: OperationResult,
+    source: MuxedAccount
+  ): TrustChangeEvent = {
+    result.getDiscriminant match {
+      case OperationResultCode.opINNER =>
+        result.getTr.getChangeTrustResult.getDiscriminant match {
+          case changeTrustResultCode => TrustChangeFailed.decode(
+            op = requested.getBody.getChangeTrustOp,
+            source = Option(requested.getSourceAccount).getOrElse(source),
+            failure = changeTrustResultCode
           )
         }
     }

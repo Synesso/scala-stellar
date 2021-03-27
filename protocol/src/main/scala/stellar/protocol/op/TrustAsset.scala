@@ -20,11 +20,6 @@ case class TrustAsset(
   source: Option[Address] = None
 ) extends Operation {
   override def xdrEncode: xdr.Operation = {
-    println(s"cto = " + new ChangeTrustOp.Builder()
-      .limit(new Int64(limit))
-      .line(asset.xdrEncode)
-      .build()
-      .encode().base64())
     new xdr.Operation.Builder()
       .body(new OperationBody.Builder()
         .discriminant(OperationType.CHANGE_TRUST)
