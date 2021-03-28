@@ -68,7 +68,7 @@ object MergeAccountEvent {
             destination = requested.getBody.getDestination,
             amount = result.getTr.getAccountMergeResult.getSourceAccountBalance
           )
-          case AccountMergeResultCode.ACCOUNT_MERGE_HAS_SUB_ENTRIES => ???
+//          case AccountMergeResultCode.ACCOUNT_MERGE_HAS_SUB_ENTRIES => ???
         }
     }
   }
