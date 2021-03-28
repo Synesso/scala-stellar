@@ -1,5 +1,7 @@
 package stellar.horizon
 
+import java.util.concurrent.ConcurrentLinkedQueue
+
 import com.typesafe.scalalogging.LazyLogging
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.mutable.Specification
@@ -10,13 +12,15 @@ import stellar.horizon.testing.TestAccountPool
 import stellar.protocol.op.TrustAsset
 import stellar.protocol.{Seed, Token, Transaction}
 
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.DurationInt
+import scala.jdk.CollectionConverters.{CollectionHasAsScala, IteratorHasAsScala}
 
 class TrustJourneySpec(implicit ee: ExecutionEnv) extends Specification with LazyLogging {
 
   private val horizon = Horizon.async(Horizon.Networks.Test)
   private lazy val testAccountPool = Await.result(TestAccountPool.create(15), 1.minute)
+  private val cleanUpOperations = new ConcurrentLinkedQueue[() => Future[TransactionResponse]]()
 
   "trusting an asset" should {
 
@@ -68,6 +72,8 @@ class TrustJourneySpec(implicit ee: ExecutionEnv) extends Specification with Laz
           maxFee = 100
         ).sign(trustor))
       } yield response
+
+      clearTrust(trustor, asset)
 
       response must beLike[TransactionResponse] { res =>
         res.accepted must beTrue
@@ -124,7 +130,7 @@ class TrustJourneySpec(implicit ee: ExecutionEnv) extends Specification with Laz
         )
         res.feeCharged mustEqual 100L
         res.validationResult mustEqual Valid
-      }.await(0, 10.seconds)
+      }.await(0, 30.seconds)
     }
 
     "fail when trust does not exist" >> pending("todo")
@@ -132,6 +138,20 @@ class TrustJourneySpec(implicit ee: ExecutionEnv) extends Specification with Laz
 
   // Close the accounts and return their funds back to friendbot
   step { logger.info("Ensuring all tests are complete before closing pool.") }
+  step { Await.result(Future.sequence(cleanUpOperations.iterator().asScala.map(_.apply)), 1.minute) }
   step { Await.result(testAccountPool.close(), 10.minute) }
+
+  def clearTrust(seed: Seed, asset: Token): Unit = cleanUpOperations.add(() =>
+    for {
+      fromAccountDetails <- horizon.account.detail(seed.accountId)
+      response <- horizon.transact(Transaction(
+        networkId = horizon.networkId,
+        source = seed.accountId,
+        sequence = fromAccountDetails.nextSequence,
+        operations = List(TrustAsset.removeTrust(asset)),
+        maxFee = 100
+      ).sign(seed))
+    } yield response
+  )
 
 }

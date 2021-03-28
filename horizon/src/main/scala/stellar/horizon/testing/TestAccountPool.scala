@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import com.typesafe.scalalogging.LazyLogging
 import stellar.horizon.Horizon
 import stellar.protocol.op.{CreateAccount, MergeAccount}
-import stellar.protocol.{Address, Lumen, Seed, Transaction}
+import stellar.protocol.{Address, Lumen, Seed, Token, Transaction}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
@@ -17,6 +17,7 @@ class TestAccountPool(
   private val seeds: List[Seed],
   private val friendbotAddress: Address
 ) extends LazyLogging {
+
   require(seeds.nonEmpty && seeds.size <= 100,
     s"Can only create between 1 and 100 test accounts (provided $seeds.size)")
 
