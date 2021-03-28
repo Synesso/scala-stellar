@@ -83,6 +83,10 @@ object TrustChangeEvent {
     result.getDiscriminant match {
       case OperationResultCode.opINNER =>
         result.getTr.getChangeTrustResult.getDiscriminant match {
+          case ChangeTrustResultCode.CHANGE_TRUST_SUCCESS => TrustChanged.decode(
+            op = requested.getBody.getChangeTrustOp,
+            source = Option(requested.getSourceAccount).getOrElse(source)
+          )
           case changeTrustResultCode => TrustChangeFailed.decode(
             op = requested.getBody.getChangeTrustOp,
             source = Option(requested.getSourceAccount).getOrElse(source),

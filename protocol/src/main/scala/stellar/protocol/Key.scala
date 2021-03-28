@@ -81,7 +81,7 @@ object AccountId {
 
   def apply(accountId: String): AccountId = AccountId(Key.decodeFromString(accountId))
 
-//  def decode(xdr: AccountID): AccountId = decode(xdr.getAccountID)
+  def decode(xdr: AccountID): AccountId = decode(xdr.getAccountID)
 
   def decode(xdr: PublicKey): AccountId = AccountId(new ByteString(xdr.getEd25519.getUint256))
 

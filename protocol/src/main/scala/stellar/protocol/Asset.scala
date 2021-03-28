@@ -17,18 +17,16 @@ object Asset {
   def decode(x: xdr.Asset): Asset = {
     x.getDiscriminant match {
       case AssetType.ASSET_TYPE_NATIVE => Lumen
-/*
       case AssetType.ASSET_TYPE_CREDIT_ALPHANUM4 =>
         Token(
-          code = new String(x.getAlphaNum4.getAssetCode.getAssetCode4, StandardCharsets.UTF_8),
+          code = new String(x.getAlphaNum4.getAssetCode.getAssetCode4, StandardCharsets.UTF_8).trim(),
           issuer = AccountId.decode(x.getAlphaNum4.getIssuer)
         )
       case AssetType.ASSET_TYPE_CREDIT_ALPHANUM12 =>
         Token(
-          code = new String(x.getAlphaNum12.getAssetCode.getAssetCode12, StandardCharsets.UTF_8),
+          code = new String(x.getAlphaNum12.getAssetCode.getAssetCode12, StandardCharsets.UTF_8).trim(),
           issuer = AccountId.decode(x.getAlphaNum12.getIssuer)
         )
-*/
     }
   }
 }
@@ -72,4 +70,8 @@ case class Token(code: String, issuer: AccountId) extends Asset {
       .build()
   }
 
+}
+
+object Token {
+  def decode(asset: xdr.Asset): Token = Asset.decode(asset).asInstanceOf[Token]
 }
