@@ -94,28 +94,8 @@ class TrustJourneySpec(implicit ee: ExecutionEnv) extends Specification with Laz
     "succeed when trust exists" >> {
       val (trustee, trustor) = testAccountPool.borrowPair
       val asset = Token("KOUGIRA", trustee.accountId)
-      val response = for {
-        fromAccountDetails <- horizon.account.detail(trustor.accountId)
-        // TODO - a simplified version? `horizon.transact(source, operation*, [fee]).sign(key)`
-        _ <- horizon.transact(Transaction(
-          networkId = horizon.networkId,
-          source = trustor.accountId,
-          sequence = fromAccountDetails.nextSequence,
-          operations = List(
-            TrustAsset(asset, 100_000_000L)
-          ),
-          maxFee = 100
-        ).sign(trustor))
-        response <- horizon.transact(Transaction(
-          networkId = horizon.networkId,
-          source = trustor.accountId,
-          sequence = fromAccountDetails.nextSequence + 1,
-          operations = List(
-            TrustAsset.removeTrust(asset)
-          ),
-          maxFee = 100
-        ).sign(trustor))
-      } yield response
+      val response = horizon.transact(trustor, List(TrustAsset(asset, 100_000_000L)))
+        .flatMap(_ => horizon.transact(trustor, List(TrustAsset.removeTrust(asset))))
       response must beLike[TransactionResponse] { res =>
         res.accepted must beTrue
         res.operationEvents mustEqual List(
