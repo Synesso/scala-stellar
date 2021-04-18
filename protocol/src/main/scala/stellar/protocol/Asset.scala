@@ -55,6 +55,8 @@ case class Token(code: String, issuer: AccountId) extends Asset {
   private val isCompact = size <= 4
   require(size >= 1 && size <= 12)
 
+  def fullCode: String = s"$code:${issuer.encodeToString}"
+
   override def xdrEncode: xdr.Asset = {
     val codeBytes = code.getBytes(StandardCharsets.UTF_8)
     new xdr.Asset.Builder()

@@ -69,7 +69,7 @@ class TrustJourneySpec(implicit ee: ExecutionEnv) extends Specification with Laz
         ).sign(trustor))
       } yield response
 
-      clearTrust(trustor, asset)
+      testAccountPool.clearTrustBeforeClosing(trustor, asset)
 
       response must beLike[TransactionResponse] { res =>
         res.accepted must beTrue
@@ -109,24 +109,12 @@ class TrustJourneySpec(implicit ee: ExecutionEnv) extends Specification with Laz
       }.await(0, 30.seconds)
     }
 
-    "fail when trust does not exist" >> pending("todo")
+    "fail when trust does not exist" >> pending("TODO")
+    "fail when a balance remains" >> pending("TODO")
   }
 
   // Close the accounts and return their funds back to friendbot
   step { logger.info("Ensuring all tests are complete before closing pool.") }
   step { Await.result(testAccountPool.close(), 10.minute) }
-
-  def clearTrust(seed: Seed, asset: Token): Unit = testAccountPool.addCleanUpStep(() =>
-    for {
-      fromAccountDetails <- horizon.account.detail(seed.accountId)
-      response <- horizon.transact(Transaction(
-        networkId = horizon.networkId,
-        source = seed.accountId,
-        sequence = fromAccountDetails.nextSequence,
-        operations = List(TrustAsset.removeTrust(asset)),
-        maxFee = 100
-      ).sign(seed))
-    } yield response
-  )
 
 }

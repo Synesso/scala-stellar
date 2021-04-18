@@ -1,12 +1,11 @@
 package stellar.horizon.testing
 
-import java.util.concurrent.ConcurrentLinkedQueue
-
 import com.typesafe.scalalogging.LazyLogging
 import stellar.horizon.{Horizon, TransactionResponse}
-import stellar.protocol.op.{CreateAccount, MergeAccount}
-import stellar.protocol.{Address, Lumen, Seed, Transaction}
+import stellar.protocol._
+import stellar.protocol.op.{CreateAccount, MergeAccount, Pay, TrustAsset}
 
+import java.util.concurrent.ConcurrentLinkedQueue
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
@@ -45,12 +44,26 @@ class TestAccountPool(
   /** Add an operation that will clean up one or more accounts in preparation for closing the pool */
   def addCleanUpStep(step: () => Future[TransactionResponse]): Unit = cleanUpOperations.add(step)
 
+  /** Add a remove trust operation on pool closure */
+  def clearTrustBeforeClosing(seed: Seed, asset: Token)(implicit ec: ExecutionContext): Unit = addCleanUpStep(() => {
+    logger.info(s"${seed.accountId.encodeToString} will no longer trust ${asset.fullCode}")
+    val horizon = Horizon.async(Horizon.Networks.Test)
+    horizon.account.detail(seed.accountId)
+      // an optional payment to clear the asset from the account
+      .map(_.balance(asset)
+        .filterNot { balance => balance.units == 0L }
+        .map { balance => Pay(Address(asset.issuer), balance) })
+      // followed by the removal of trust
+      .flatMap(withdrawTxn => horizon.transact(seed, withdrawTxn.toList :+ TrustAsset.removeTrust(asset)))
+  })
+
   def close()(implicit ec: ExecutionContext): Future[Unit] = {
     if (free.isEmpty && borrowed.isEmpty) Future(())
     else {
       val horizon = Horizon.async(Horizon.Networks.Test)
       val seeds = List.from(free.iterator().asScala) ++ List.from(borrowed.iterator().asScala)
       val closeBatches = seeds.grouped(20)
+      logger.info(s"Executing ${cleanUpOperations.size()} clean up operation(s)")
       for {
         _ <- Future.sequence(cleanUpOperations.iterator().asScala.map(_.apply()))
         _ <- Future.sequence(closeBatches.zipWithIndex.map {
