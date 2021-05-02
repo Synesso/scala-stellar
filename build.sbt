@@ -15,7 +15,7 @@ lazy val protocol = project
       "jitpack" at "https://jitpack.io"
     ),
     libraryDependencies ++= List(
-      "com.github.synesso" % "stellar-xdr-jre" % "15.1.0.3",
+      "com.github.synesso" % "stellar-xdr-jre" % "17.0.0.0",
       "com.gu" %% "spy" % "0.1.1",
       "com.squareup.okio" % "okio" % "2.8.0",
       "commons-codec" % "commons-codec" % "1.15",
