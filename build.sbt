@@ -1,5 +1,5 @@
 ThisBuild / homepage := Some(url("https://github.com/synesso/scala-stellar"))
-ThisBuild / scalaVersion := "2.13.5"
+ThisBuild / scalaVersion := "2.13.6"
 
 lazy val `scala-stellar` = project
   .in(file("."))
